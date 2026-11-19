@@ -19,6 +19,16 @@ These are VAPAS product rules, not legal rules and not legal advice. They sit on
 - Filing deadline = 90 days from the later of (the wait period ends) and (the bank's last communication), per `rbi.rbios26.deadline`.
 - M7 reminders and the M8 case page must show a visible countdown to this deadline. The bank's last communication date is entered by the user.
 
+## P5. Transfers not credited to the beneficiary (credit-push)
+- Rules: `rbi.tat.card_to_card` (2a), `rbi.tat.imps_not_credited` (3a), `rbi.tat.upi_p2p_not_credited` (4a), `rbi.tat.aeps_not_credited` (5b).
+- Annex General Instruction 1(a): for credit-push transfers the penalty is paid **to the beneficiary**, so VAPAS cannot tell the payer they are owed it.
+- Policy: **worth checking** only. No amount and no claim, even with user input. Letters may ask only for the reversal (`letter_scope: reversal_only`; the schema rejects any other scope for worth_checking rules).
+
+## P6. RB-IOS 2026 maintainability (Clause 10)
+- Bank complaint letters never cc or mark RBI as a form of escalation. Copying RBI is not a complaint to the Ombudsman (`rbi.rbios26.direct_to_ombudsman`, Clause 10(1)(a)).
+- VAPAS never files a complaint for the user. The user files personally (`rbi.rbios26.who_may_file`, Clause 10(1)(b)).
+- Before escalation, M7 asks: "Have you already filed this grievance with the RBI Ombudsman or any court, tribunal, arbitrator or other forum?" If the answer is yes, escalation is blocked (`rbi.rbios26.no_duplicate_grievance`, Clause 10(1)(h)-(k)).
+
 ## P4. RBI/NPCI source documents
 - Download source PDFs manually in a browser. Never script around the bot check or CAPTCHA.
 - Record the sha256 of the downloaded file in the YAML (`sha256`), e.g. `(Get-FileHash .\file.pdf).Hash.ToLower()`.

@@ -13,11 +13,11 @@ Every rule in `rules/rbi/` starts as `unverified`. Only rules you mark `verified
 
 | Instrument | Ref | Dates | Status | Check |
 |---|---|---|---|---|
-| TAT and compensation for failed transactions | RBI/2019-20/67, DPSS.CO.PD No.629/02.01.014/2019-20 | issued 20 Sep 2019, in force 15 Oct 2019 | `in_force_unconfirmed` | Confirm it is **not** in the 28 Nov 2025 repeal annex (that consolidation covered Department of Regulation circulars; this one is DPSS). Directions issued in 2024-25 (BBPS, Payment Aggregators, PPI) still cite it "as amended". [page](https://www.rbi.org.in/Scripts/NotificationUser.aspx?Id=11693&Mode=0), [PDF](https://rbidocs.rbi.org.in/rdocs/notification/PDFs/CIRCULAR677EC931A7A65E4D99AA957D8E85BC0A2A.PDF) sha256 `666fe280…f88f6` |
+| TAT and compensation for failed transactions | RBI/2019-20/67, DPSS.CO.PD No.629/02.01.014/2019-20 | issued 20 Sep 2019, in force 15 Oct 2019 | `in_force` | Nov 2025 consolidation (Press Release 2025-26/1588, paras 2 and 6(2)) withdrew only Department of Regulation circulars. This circular is DPSS (DPSS.CO.PD No.629), so it is outside that list. Directions issued in 2024-25 (BBPS, Payment Aggregators, PPI) still cite it "as amended". [page](https://www.rbi.org.in/Scripts/NotificationUser.aspx?Id=11693&Mode=0), [PDF](https://rbidocs.rbi.org.in/rdocs/notification/PDFs/CIRCULAR677EC931A7A65E4D99AA957D8E85BC0A2A.PDF) sha256 `666fe280…f88f6` |
 | Working-days relaxation 1 | RBI/2019-20/251, DPSS.CO.PD.No.1897/02.14.003/2019-20 | issued 4 Jun 2020; window 24 Mar 2020 to 31 Dec 2020 | `expired` | Annex SN 3. [page](https://www.rbi.org.in/Scripts/NotificationUser.aspx?Id=11910&Mode=0) |
 | Working-days relaxation 2 | RBI/2021-22/41, CO.DPSS.POLC.No.S-106/02-14-003/2021-2022 | issued 21 May 2021; window "prospective" to 30 Sep 2021 | `expired` | Annexure SN 2; calendar days applied 1 Jan 2021 to 20 May 2021. [page](https://www.rbi.org.in/commonperson/english/scripts/Notification.aspx?Id=3307) |
 | RB-IOS 2021 | CEPD.PRD.No.S873/13.01.001/2021-22 | 12 Nov 2021 to 30 Jun 2026 | `superseded` | Amended 5 Aug 2022 (S544) and 7 Oct 2025 (S684, in force 1 Nov 2025). [page](https://www.rbi.org.in/Scripts/NotificationUser.aspx?Id=12192&Mode=0) |
-| **RB-IOS 2026** | Press release 2025-2026/1936; notification no. **not found yet** | issued 16 Jan 2026, in force **1 Jul 2026** | `in_force` | Fill in the notification number and clause numbers from the [scheme PDF](https://rbidocs.rbi.org.in/rdocs/content/pdfs/SCHEME16012026_A.pdf). |
+| **RB-IOS 2026** | Press Release 2025-2026/1936, 16 Jan 2026 (no notification number on the scheme) | issued 16 Jan 2026, in force **1 Jul 2026** | `in_force` | Clause 10 checked by the user against the [scheme PDF](https://rbidocs.rbi.org.in/rdocs/content/pdfs/SCHEME16012026_A.pdf). |
 
 The 2019 PDF hosted today cites "RB-IOS 2021 (as amended)" in para 6, so RBI changed the PDF after 2021. The sha256 lets us detect future silent edits.
 
@@ -27,43 +27,56 @@ Common to all rows: T = transaction date (calendar date, General Instruction 4).
 
 | # | Rule id | Annex | System / scenario | Responsible | Deadline | Compensation | VAPAS policy | Verified |
 |---|---|---|---|---|---|---|---|---|
-| 1 | `rbi.tat.atm_cash_not_dispensed` | 1(a) | ATM / micro-ATM: debited, cash not dispensed | issuer bank | T+5 | ₹100/day beyond T+5, to the account holder | claim on late reversal | ☐ |
-| 2 | `rbi.tat.card_to_card` | 2(a) | Card-to-card: beneficiary card not credited | not stated | T+1 | ₹100/day beyond T+1 | claim on late reversal | ☐ |
+| 1 | `rbi.tat.atm_cash_not_dispensed` | 1(a) | ATM / micro-ATM: debited, cash not dispensed | not stated | T+5 | ₹100/day beyond T+5, to the account holder | claim on late reversal | ☐ |
+| 2 | `rbi.tat.card_to_card` | 2(a) | Card-to-card: beneficiary card not credited | not stated | T+1 | ₹100/day beyond T+1 | worth checking, reversal request only, no amount | ☐ |
 | 3 | `rbi.tat.card_pos` | 2(b) | PoS card present incl. cash at PoS: no charge slip | not stated | T+5 | ₹100/day beyond T+5 | claim on late reversal | ☐ |
 | 4 | `rbi.tat.card_cnp` | 2(c) | Card not present (e-commerce): no merchant confirmation | not stated | T+5 *(merged cell with 2b)* | ₹100/day beyond T+5 *(merged)* | claim on late reversal | ☐ |
-| 5 | `rbi.tat.imps_not_credited` | 3(a) | IMPS: beneficiary not credited | **beneficiary bank** | T+1 | ₹100/day beyond T+1 | needs user input | ☐ |
-| 6 | `rbi.tat.upi_p2p_not_credited` | 4(a) | UPI transfer: beneficiary not credited | **beneficiary bank** | T+1 | ₹100/day beyond T+1 | needs user input | ☐ |
+| 5 | `rbi.tat.imps_not_credited` | 3(a) | IMPS: beneficiary not credited | **beneficiary bank** | T+1 | ₹100/day beyond T+1 | worth checking, reversal request only, no amount | ☐ |
+| 6 | `rbi.tat.upi_p2p_not_credited` | 4(a) | UPI transfer: beneficiary not credited | **beneficiary bank** | T+1 | ₹100/day beyond T+1 | worth checking, reversal request only, no amount | ☐ |
 | 7 | `rbi.tat.upi_merchant` | 4(b) | UPI merchant: no confirmation at merchant | not stated | T+5 | ₹100/day beyond T+5 | claim on late reversal | ☐ |
 | 8 | `rbi.tat.aeps_merchant` | 5(a) | AePS: no confirmation at merchant | acquirer ("Credit Adjustment") | T+5 | ₹100/day beyond T+5 | claim on late reversal | ☐ |
-| 9 | `rbi.tat.aeps_not_credited` | 5(b) | AePS: beneficiary not credited | acquirer *(merged cell with 5a)* | T+5 *(merged)* | ₹100/day beyond T+5 *(merged)* | needs user input | ☐ |
+| 9 | `rbi.tat.aeps_not_credited` | 5(b) | AePS: beneficiary not credited | acquirer *(merged cell with 5a)* | T+5 *(merged)* | ₹100/day beyond T+5 *(merged)* | worth checking, reversal request only, no amount | ☐ |
 | 10 | `rbi.tat.apbs_credit_delay` | 6(a) | APBS: delay crediting beneficiary | beneficiary bank | T+1 | ₹100/day beyond T+1 | not detectable in v1 | ☐ |
 | 11 | `rbi.tat.nach_credit_delay` | 7(a) | NACH: delay in credit or reversal | beneficiary bank | T+1 | ₹100/day beyond T+1 | not detectable in v1 | ☐ |
 | 12 | `rbi.tat.nach_debit_after_revocation` | 7(b) | NACH: debited despite mandate revocation | customer's bank | T+1 ("resolution") | ₹100/day beyond T+1 *(compensation cell merged with 7a)* | needs user input | ☐ |
 | 13 | `rbi.tat.ppi_off_us` | 8(a) | PPI off-us | rules of the underlying system | — | — | delegates | ☐ |
 | 14 | `rbi.tat.ppi_on_us` | 8(b) | PPI on-us: not credited / no merchant confirmation | not stated | T+1 | ₹100/day beyond T+1 | not detectable in v1 (bank statements only) | ☐ |
 
-*Merged cell*: in the PDF table one cell spans two rows, so the text extractor shows the lower row as empty. I rendered the pages and checked: the 2(b), 5(a) and 7(a) cells extend down over 2(c), 5(b) and 7(b). Please confirm this visually.
+*Merged cell*: in the PDF table one cell spans two rows, so the text extractor shows the lower row as empty.
+
+**Merged cells: verified** by Hardik Agarwal on 2026-11-19. Source: [NotificationUser.aspx?Id=11693](https://www.rbi.org.in/Scripts/NotificationUser.aspx?Id=11693&Mode=0), PDF plus the HTML source (7 `rowspan="2"`: 2 header cells + 5 data cells).
+- 2(c): TAT and compensation merged from 2(b).
+- 5(b): TAT and compensation merged from 5(a).
+- 7(b): own TAT ("Customer's bank will be responsible for such debit. Resolution to be completed within T + 1 day."); compensation merged from 7(a).
 
 ## C. Day-type overrides
 
-| Rule id | Window | Effect | Verified |
+**Not used in v1.** The 12-month claim lookback (`docs/product_policy.md` P2) never reaches these windows; the latest ends 30 Sep 2021. Both files are kept as history and need no verification for v1. Any transaction dated inside a window is outside the lookback, so it is shown as "historical, informational only".
+
+| Rule id | Window | Effect | Status |
 |---|---|---|---|
-| `rbi.tat_override.working_days_2020` | 24 Mar 2020 to 31 Dec 2020 | read "calendar days" as "working days" | ☐ |
-| `rbi.tat_override.working_days_2021` | 21 May 2021 (assumed) to 30 Sep 2021 | same | ☐ |
+| `rbi.tat_override.working_days_2020` | 24 Mar 2020 to 31 Dec 2020 | read "calendar days" as "working days" | not used in v1 |
+| `rbi.tat_override.working_days_2021` | 21 May 2021 (assumed; start date not confirmed) to 30 Sep 2021 | same | not used in v1 |
 
 ## D. Ombudsman rules (RB-IOS 2026, in force 1 Jul 2026)
 
-Text taken from RBI's FAQ on the scheme because the scheme PDF is behind a CAPTCHA. **Fill in the exact clause numbers from the scheme PDF.**
+Clause 10 rules: quotes taken from the scheme PDF, downloaded manually and checked by the user. Verified by Hardik Agarwal on 2026-11-19.
 
-| Rule id | Rule | Days | Verified |
-|---|---|---|---|
-| `rbi.rbios26.prior_complaint` | complain to the bank first and keep proof | — | ☐ |
-| `rbi.rbios26.wait` | wait 30 days (or longer if RBI/NPCI/card network guidelines set more) after the bank receives the complaint, unless it replied and the customer is dissatisfied | 30 | ☐ |
-| `rbi.rbios26.deadline` | file with the Ombudsman within 90 days of the later of (wait period ends) and (last communication from the bank) | 90 | ☐ |
-| `rbi.rbios26.limitation` | complaint to the bank within the Limitation Act, 1963 period (no number stored) | — | ☐ |
-| `rbi.rbios26.filing_channels` | cms.rbi.org.in / crpc@rbi.org.in / CRPC Chandigarh | — | ☐ |
-| `rbi.rbios26.appeal` | appeal an Award within 30 days (+30 at the Appellate Authority's discretion) | 30 | ☐ |
-| `rbi.rbios26.transition` | complaints received before 1 Jul 2026 stay under RB-IOS 2021 | — | ☐ |
+| Rule id | Clause | Rule | Days | Verified |
+|---|---|---|---|---|
+| `rbi.rbios26.direct_to_ombudsman` | 10(1)(a) | complaint addressed to the Ombudsman directly; copying RBI does not count | — | ☑ |
+| `rbi.rbios26.who_may_file` | 10(1)(b) | complainant personally, or an authorised representative who is not an advocate | — | ☑ |
+| `rbi.rbios26.prior_complaint` | 10(1)(e) | complain to the bank first, with producible proof | — | ☑ |
+| `rbi.rbios26.wait` | 10(1)(f) | no reply within 30 days (or longer RBI/NPCI/card network period, whichever is higher) after the bank receives the complaint, or an unsatisfactory reply | 30 | ☑ |
+| `rbi.rbios26.deadline` | 10(1)(g) | file within 90 days of the later of the 10(1)(f) expiry and the bank's last communication | 90 | ☑ |
+| `rbi.rbios26.no_duplicate_grievance` | 10(1)(h)-(k) | not the same grievance pending or decided at the Ombudsman or any court/forum | — | ☑ |
+| `rbi.rbios26.limitation` | 10(1)(l) | complaint to the bank within the Limitation Act, 1963 period (no number stored) | — | ☑ |
+| `rbi.rbios26.non_maintainable_rejected` | 10(3) | non-maintainable complaints are rejected at the outset | — | ☑ |
+| `rbi.rbios26.filing_channels` | 11(1) and 11(2) | online at cms.rbi.org.in, or e-mail / physical mode to the CRPC as notified by RBI | — | ☑ |
+
+Not encoded:
+- **Appeal:** Not used in v1: appeal against an Ombudsman decision is the user's own step; VAPAS cases end at escalated -> closed.
+- **Transition from RB-IOS 2021:** Not used in v1: covers complaints filed before 1 Jul 2026; every VAPAS case is created after that date.
 | `rbi.rbios21.deadline` | (history) 2021 scheme 10(2)(a)(ii): 1 year after reply, or 1 year + 30 days with no reply | — | ☐ |
 
 ## E. NACH mandate clauses on npci.org.in
@@ -80,10 +93,9 @@ No public NPCI clause on debits after mandate revocation was found. The NACH cir
 | Partial reversal | Reversal amount < debit | Not a claim. "Worth checking" with both amounts. |
 | Reversal split across days | Several credits add up to the debit | Match only if the parts sum exactly to the debit; R = the date of the last part. Otherwise worth checking. |
 | Compensation already paid | Bank may credit "TAT comp" or similar | Subtract any credit whose narration matches compensation patterns and whose date is after R; if unclear, show "may already be paid" and lower the confidence. |
-| Working-day windows (2020, 2021) | Working days need a bank-holiday calendar we don't have from an allowed source | Transactions with T inside an override window → needs_review, no amount calculated. |
-| 1 Jan to 20 May 2021 gap | Start of the 2021 "prospective" relaxation | Calendar days assumed, but marked needs_review. |
-| Responsible party not stated (rows 2, 4b, 8b) | The annex does not say which bank pays | Letter addresses the customer's own bank (the bank holding the statement) and cites the row; the annex does not name a payer. |
-| Credit-push payee (GI 1(a)) | GI 1(a) says the penalty for unreversed credit-push transfers is paid "to the beneficiary" | IMPS/UPI P2P rows stay needs_user_input as already decided; letters never state who receives compensation beyond the annex text. |
+| Working-day windows (2020, 2021) | Working days need a bank-holiday calendar, and the 2021 start date is not stated | Not used in v1: outside the 12-month lookback (P2), so these transactions are historical and informational only. Revisit only if the lookback is ever extended past Sep 2021. |
+| Responsible party not stated (rows 1, 2, 4b, 8b) | The annex does not say which bank pays | `responsible: not_stated`, exactly as the PDF reads. Letter addresses the customer's own bank (the bank holding the statement) and cites the row; the annex does not name a payer. |
+| Credit-push payee (GI 1(a)) | GI 1(a) says the penalty for unreversed credit-push transfers is paid "to the beneficiary" | All "beneficiary not credited" rows (2a card-to-card, 3a IMPS, 4a UPI P2P, 5b AePS) are `worth_checking` with `letter_scope: reversal_only`: no amount and no claim, even with user input. Letters ask only for the reversal. |
 | Old transactions | Ombudsman requires the complaint to the bank within the Limitation Act period | No legal period stored. Product rule P2: only the last 12 months (configurable) can become claims; older findings are "historical, informational only". |
 | NACH revocation date | The statement does not show when the mandate was revoked | Product rule P1: needs user input (revocation date + proof confirmed); the letter states the date was provided by the user. |
 | International transactions | GI 7: domestic only | Excluded (already decided). |

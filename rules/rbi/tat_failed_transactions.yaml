@@ -7,7 +7,7 @@ instrument:
   issued_on: 2019-09-20
   effective_from: 2019-10-15
   effective_to: null
-  legal_status: in_force_unconfirmed
+  legal_status: in_force
   page:
     url: https://www.rbi.org.in/Scripts/NotificationUser.aspx?Id=11693&Mode=0
     fetched_on: 2026-11-19
@@ -23,20 +23,22 @@ instrument:
     General Instruction 5: R is the day the reversal is concluded and funds are received by the issuer/originator;
     reversal to the customer the same day. General Instruction 7: domestic transactions only. Para 5: compensation suo moto.
     The hosted PDF para 6 cites RB-IOS 2021 (as amended), so RBI has edited the PDF in place since 2019.
-    Still referenced "as amended from time to time" by RBI directions issued in 2024-2025. Not seen in the Nov 2025
-    DoR repeal list (that consolidation covered Department of Regulation circulars; this is a DPSS circular) - user to confirm.
+    Still referenced "as amended from time to time" by RBI directions issued in 2024-2025.
+    Nov 2025 consolidation (Press Release 2025-26/1588, paras 2 and 6(2)) withdrew only Department of Regulation
+    circulars. This circular is DPSS (DPSS.CO.PD No.629), so it is outside that list.
 
 tat_rules:
   - id: rbi.tat.atm_cash_not_dispensed
     clause: Annex Sl. 1(a)
     payment_system: ATM (incl. Micro-ATM)
     scenario: Customer's account debited but cash not dispensed
-    responsible: issuer_bank
+    responsible: not_stated
     deadline_days: 5
     compensation: {per_day_inr: 100, beyond_days: 5, payee_text: to the credit of the account holder}
     finding_policy: late_reversal_claim
     quote: "Pro-active reversal (R) of failed transaction within a maximum of T + 5 days. | ₹ 100/- per day of delay beyond T + 5 days, to the credit of the account holder."
     effective_from: 2019-10-15
+    review: {status: verified, verified_by: Hardik Agarwal, verified_on: 2026-11-19}
 
   - id: rbi.tat.card_to_card
     clause: Annex Sl. 2(a)
@@ -45,9 +47,11 @@ tat_rules:
     responsible: not_stated
     deadline_days: 1
     compensation: {per_day_inr: 100, beyond_days: 1}
-    finding_policy: late_reversal_claim
+    finding_policy: worth_checking
+    letter_scope: reversal_only
     quote: "Transaction to be reversed (R) latest within T + 1 day, if credit is not effected to the beneficiary account. | ₹ 100/- per day of delay beyond T + 1 day."
     effective_from: 2019-10-15
+    review: {status: verified, verified_by: Hardik Agarwal, verified_on: 2026-11-19}
 
   - id: rbi.tat.card_pos
     clause: Annex Sl. 2(b)
@@ -59,6 +63,7 @@ tat_rules:
     finding_policy: late_reversal_claim
     quote: "Auto-reversal within T + 5 days. | ₹ 100/- per day of delay beyond T + 5 days."
     effective_from: 2019-10-15
+    review: {status: verified, verified_by: Hardik Agarwal, verified_on: 2026-11-19}
 
   - id: rbi.tat.card_cnp
     clause: Annex Sl. 2(c)
@@ -68,9 +73,10 @@ tat_rules:
     deadline_days: 5
     compensation: {per_day_inr: 100, beyond_days: 5}
     finding_policy: late_reversal_claim
-    merged_cell: true
-    quote: "Auto-reversal within T + 5 days. | ₹ 100/- per day of delay beyond T + 5 days. (cells merged with row 2(b) in the PDF table)"
+    merged_from: "2(b)"
+    quote: "Auto-reversal within T + 5 days. | ₹ 100/- per day of delay beyond T + 5 days."
     effective_from: 2019-10-15
+    review: {status: verified, verified_by: Hardik Agarwal, verified_on: 2026-11-19}
 
   - id: rbi.tat.imps_not_credited
     clause: Annex Sl. 3(a)
@@ -79,9 +85,11 @@ tat_rules:
     responsible: beneficiary_bank
     deadline_days: 1
     compensation: {per_day_inr: 100, beyond_days: 1}
-    finding_policy: needs_user_input
+    finding_policy: worth_checking
+    letter_scope: reversal_only
     quote: "If unable to credit to beneficiary account, auto reversal (R) by the Beneficiary bank latest on T + 1 day. | ₹100/- per day if delay is beyond T + 1 day."
     effective_from: 2019-10-15
+    review: {status: verified, verified_by: Hardik Agarwal, verified_on: 2026-11-19}
 
   - id: rbi.tat.upi_p2p_not_credited
     clause: Annex Sl. 4(a)
@@ -90,9 +98,11 @@ tat_rules:
     responsible: beneficiary_bank
     deadline_days: 1
     compensation: {per_day_inr: 100, beyond_days: 1}
-    finding_policy: needs_user_input
+    finding_policy: worth_checking
+    letter_scope: reversal_only
     quote: "If unable to credit the beneficiary account, auto reversal (R) by the Beneficiary bank latest on T + 1 day. | ₹100/- per day if delay is beyond T + 1 day."
     effective_from: 2019-10-15
+    review: {status: verified, verified_by: Hardik Agarwal, verified_on: 2026-11-19}
 
   - id: rbi.tat.upi_merchant
     clause: Annex Sl. 4(b)
@@ -104,6 +114,7 @@ tat_rules:
     finding_policy: late_reversal_claim
     quote: "Auto-reversal within T + 5 days. | ₹100/- per day if delay is beyond T + 5 days."
     effective_from: 2019-10-15
+    review: {status: verified, verified_by: Hardik Agarwal, verified_on: 2026-11-19}
 
   - id: rbi.tat.aeps_merchant
     clause: Annex Sl. 5(a)
@@ -115,6 +126,7 @@ tat_rules:
     finding_policy: late_reversal_claim
     quote: "Acquirer to initiate \"Credit Adjustment\" within T + 5 days. | ₹100/- per day if delay is beyond T + 5 days."
     effective_from: 2019-10-15
+    review: {status: verified, verified_by: Hardik Agarwal, verified_on: 2026-11-19}
 
   - id: rbi.tat.aeps_not_credited
     clause: Annex Sl. 5(b)
@@ -123,10 +135,12 @@ tat_rules:
     responsible: acquirer
     deadline_days: 5
     compensation: {per_day_inr: 100, beyond_days: 5}
-    finding_policy: needs_user_input
-    merged_cell: true
-    quote: "Acquirer to initiate \"Credit Adjustment\" within T + 5 days. | ₹100/- per day if delay is beyond T + 5 days. (cells merged with row 5(a) in the PDF table)"
+    finding_policy: worth_checking
+    letter_scope: reversal_only
+    merged_from: "5(a)"
+    quote: "Acquirer to initiate \"Credit Adjustment\" within T + 5 days. | ₹100/- per day if delay is beyond T + 5 days."
     effective_from: 2019-10-15
+    review: {status: verified, verified_by: Hardik Agarwal, verified_on: 2026-11-19}
 
   - id: rbi.tat.apbs_credit_delay
     clause: Annex Sl. 6(a)
@@ -138,6 +152,7 @@ tat_rules:
     finding_policy: not_detectable_v1
     quote: "Beneficiary bank to reverse the transaction within T + 1 day. | ₹100/- per day if delay is beyond T + 1 day."
     effective_from: 2019-10-15
+    review: {status: verified, verified_by: Hardik Agarwal, verified_on: 2026-11-19}
 
   - id: rbi.tat.nach_credit_delay
     clause: Annex Sl. 7(a)
@@ -149,6 +164,7 @@ tat_rules:
     finding_policy: not_detectable_v1
     quote: "Beneficiary bank to reverse the uncredited transaction within T + 1 day. | ₹100/- per day if delay is beyond T + 1 day."
     effective_from: 2019-10-15
+    review: {status: verified, verified_by: Hardik Agarwal, verified_on: 2026-11-19}
 
   - id: rbi.tat.nach_debit_after_revocation
     clause: Annex Sl. 7(b)
@@ -162,9 +178,10 @@ tat_rules:
       - mandate_revocation_date
       - revocation_proof_confirmed
     letter_disclosure: The mandate revocation date stated here was provided by the customer and is not shown on the bank statement.
-    merged_cell: true
-    quote: "Customer's bank will be responsible for such debit. Resolution to be completed within T + 1 day. | ₹100/- per day if delay is beyond T + 1 day. (compensation cell merged with row 7(a) in the PDF table)"
+    merged_from: "7(a), compensation only"
+    quote: "Customer's bank will be responsible for such debit. Resolution to be completed within T + 1 day. | ₹100/- per day if delay is beyond T + 1 day."
     effective_from: 2019-10-15
+    review: {status: verified, verified_by: Hardik Agarwal, verified_on: 2026-11-19}
 
   - id: rbi.tat.ppi_off_us
     clause: Annex Sl. 8(a)
@@ -182,6 +199,7 @@ tat_rules:
       - rbi.tat.imps_not_credited
     quote: "The transaction will ride on UPI, card network, IMPS, etc., as the case may be. The TAT and compensation rule of respective system shall apply."
     effective_from: 2019-10-15
+    review: {status: verified, verified_by: Hardik Agarwal, verified_on: 2026-11-19}
 
   - id: rbi.tat.ppi_on_us
     clause: Annex Sl. 8(b)
@@ -193,3 +211,4 @@ tat_rules:
     finding_policy: not_detectable_v1
     quote: "Reversal effected in Remitter's account within T + 1 day. | ₹100/- per day if delay is beyond T + 1 day."
     effective_from: 2019-10-15
+    review: {status: verified, verified_by: Hardik Agarwal, verified_on: 2026-11-19}

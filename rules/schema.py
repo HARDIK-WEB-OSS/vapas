@@ -54,18 +54,26 @@ class Party(StrEnum):
 class FindingPolicy(StrEnum):
     LATE_REVERSAL_CLAIM = "late_reversal_claim"
     NEEDS_USER_INPUT = "needs_user_input"
+    WORTH_CHECKING = "worth_checking"
     NOT_DETECTABLE_V1 = "not_detectable_v1"
     DELEGATES = "delegates"
 
 
+class LetterScope(StrEnum):
+    CLAIM = "claim"
+    REVERSAL_ONLY = "reversal_only"
+
+
 class OmbudsmanKind(StrEnum):
+    DIRECT_TO_OMBUDSMAN = "direct_to_ombudsman"
+    WHO_MAY_FILE = "who_may_file"
+    NO_DUPLICATE_GRIEVANCE = "no_duplicate_grievance"
+    NON_MAINTAINABLE_REJECTED = "non_maintainable_rejected"
     PRIOR_COMPLAINT_REQUIRED = "prior_complaint_required"
     WAIT_BEFORE_ESCALATION = "wait_before_escalation"
     ESCALATION_DEADLINE = "escalation_deadline"
     LIMITATION = "limitation"
     FILING_CHANNEL = "filing_channel"
-    APPEAL_DEADLINE = "appeal_deadline"
-    TRANSITION = "transition"
 
 
 class Source(Strict):
@@ -136,10 +144,17 @@ class TatRule(Window):
     delegates_to: list[RuleId] = []
     user_inputs: list[str] = []
     letter_disclosure: str | None = None
+    letter_scope: LetterScope = LetterScope.CLAIM
     escalation_wait_days: int | None = Field(default=None, gt=0)
-    merged_cell: bool = False
+    merged_from: str | None = None
     quote: str
     review: Review = Review()
+
+    @model_validator(mode="after")
+    def quote_is_source_text_only(self) -> Self:
+        if "(cells merged" in self.quote:
+            raise ValueError("quote must contain only source text; use merged_from for merged cells")
+        return self
 
     @model_validator(mode="after")
     def user_input_policy_needs_inputs(self) -> Self:
@@ -147,6 +162,12 @@ class TatRule(Window):
             raise ValueError("user_inputs only apply to needs_user_input rules")
         if self.user_inputs and not self.letter_disclosure:
             raise ValueError("user-supplied facts need a letter_disclosure")
+        return self
+
+    @model_validator(mode="after")
+    def worth_checking_never_claims(self) -> Self:
+        if self.finding_policy is FindingPolicy.WORTH_CHECKING and self.letter_scope is not LetterScope.REVERSAL_ONLY:
+            raise ValueError("worth_checking rules may only request the reversal")
         return self
 
     @model_validator(mode="after")

@@ -2,7 +2,7 @@ instrument:
   id: rbi.rbios_2026
   issuer: RBI
   title: Reserve Bank - Integrated Ombudsman Scheme, 2026
-  ref_no: null
+  ref_no: Press Release 2025-2026/1936, 16 Jan 2026
   dept_ref: null
   issued_on: 2026-01-16
   effective_from: 2026-07-01
@@ -15,80 +15,105 @@ instrument:
     url: https://rbidocs.rbi.org.in/rdocs/content/pdfs/SCHEME16012026_A.pdf
     fetched_on: 2026-11-19
   notes: >-
-    Press release 2025-2026/1936. Replaces RB-IOS 2021 for complaints received on or after 1 Jul 2026.
-    The scheme PDF sits behind a CAPTCHA and could not be read automatically, so clause text below comes from
-    RBI's own FAQ on the scheme (rbi.org.in). The user must check each rule against the scheme PDF and record the
-    exact clause number and the notification number (not shown on the press release).
+    Replaces RB-IOS 2021 for complaints received on or after 1 Jul 2026. Clause 10 and 11 rules were checked by the
+    user against the scheme PDF, downloaded manually. Appeal and transition clauses are not encoded (not used in v1,
+    see docs/rules_verification.md section D).
 
 ombudsman_rules:
-  - id: rbi.rbios26.prior_complaint
-    clause: Clause 10 (via FAQ Q16/Q17) - exact sub-clause to confirm
-    kind: prior_complaint_required
-    text: The customer must first complain to the regulated entity (the bank) and keep proof of that complaint.
-    quote: "The complainant must first approach the concerned Regulated Entity."
-    source: {url: "https://www.rbi.org.in/commonperson/english/scripts/FAQs.aspx?Id=3407", fetched_on: 2026-11-19}
+  - id: rbi.rbios26.direct_to_ombudsman
+    clause: Clause 10(1)(a)
+    kind: direct_to_ombudsman
+    text: The complaint must be addressed to the RBI Ombudsman directly; copying RBI on a letter to the bank is not a complaint under the Scheme.
+    quote: "the complaint is addressed to the RBI Ombudsman directly. However, it does not include a communication in which the Reserve Bank is merely endorsed/marked in copy (whether by e-mail or in physical form)"
+    source: {url: "https://rbidocs.rbi.org.in/rdocs/content/pdfs/SCHEME16012026_A.pdf", fetched_on: 2026-11-19}
     effective_from: 2026-07-01
+    review: {status: verified, verified_by: Hardik Agarwal, verified_on: 2026-11-19}
+
+  - id: rbi.rbios26.who_may_file
+    clause: Clause 10(1)(b)
+    kind: who_may_file
+    text: The complainant files personally or through an authorised representative who is not an advocate (unless the advocate is the aggrieved person).
+    quote: "the complaint is lodged by the Complainant personally or through an authorised representative other than an advocate unless the advocate is the aggrieved person"
+    source: {url: "https://rbidocs.rbi.org.in/rdocs/content/pdfs/SCHEME16012026_A.pdf", fetched_on: 2026-11-19}
+    effective_from: 2026-07-01
+    review: {status: verified, verified_by: Hardik Agarwal, verified_on: 2026-11-19}
+
+  - id: rbi.rbios26.prior_complaint
+    clause: Clause 10(1)(e)
+    kind: prior_complaint_required
+    text: The customer must first complain to the regulated entity (the bank), in writing or any mode with producible proof.
+    quote: "the Complainant had first made a complaint in writing or through any other mode to the Regulated Entity concerned, where proof of having made a complaint can be produced by the Complainant, before making a complaint under the Scheme"
+    source: {url: "https://rbidocs.rbi.org.in/rdocs/content/pdfs/SCHEME16012026_A.pdf", fetched_on: 2026-11-19}
+    effective_from: 2026-07-01
+    review: {status: verified, verified_by: Hardik Agarwal, verified_on: 2026-11-19}
 
   - id: rbi.rbios26.wait
-    clause: Clause 10 (via FAQ Q17) - exact sub-clause to confirm
+    clause: Clause 10(1)(f)
     kind: wait_before_escalation
     days: 30
     longer_system_wait_applies: true
-    anchor: date the regulated entity received the complaint
+    anchor: date the Regulated Entity received the complaint
     text: >-
       Escalate if no reply within 30 days (or a longer period set by RBI, NPCI or card network guidelines, whichever
-      is higher), or earlier if the bank replied and the customer is not satisfied. Effective wait =
+      is higher), or earlier if the reply or resolution is unsatisfactory. Effective wait =
       max(30, escalation_wait_days of the TAT rule); escalation_wait_days stays null until a longer period is
       found on an allowed source and verified.
-    quote: "if the complainant has not received any reply within 30 days or within the time specified by RBI, NPCI or Card Network guidelines, if any, whichever is higher"
-    source: {url: "https://www.rbi.org.in/commonperson/english/scripts/FAQs.aspx?Id=3407", fetched_on: 2026-11-19}
+    quote: "the Complainant has not received any reply within 30 days or within the time specified by the Reserve Bank, National Payments Corporation of India, or under Card Network guidelines, if any, whichever is higher after the Regulated Entity received the complaint; or the Complainant is not satisfied with the reply / resolution provided by the Regulated Entity"
+    source: {url: "https://rbidocs.rbi.org.in/rdocs/content/pdfs/SCHEME16012026_A.pdf", fetched_on: 2026-11-19}
     effective_from: 2026-07-01
+    review: {status: verified, verified_by: Hardik Agarwal, verified_on: 2026-11-19}
 
   - id: rbi.rbios26.deadline
-    clause: Clause 10 (via FAQ Q17) - exact sub-clause to confirm
+    clause: Clause 10(1)(g)
     kind: escalation_deadline
     days: 90
-    anchor: later of (expiry of the wait period) and (date of the last communication from the regulated entity)
+    anchor: later of (expiry of the Clause 10(1)(f) timeline) and (date of the last communication from the Regulated Entity)
     text: The complaint to the RBI Ombudsman must be filed within 90 days of the later anchor.
-    quote: "within 90 days from the date on which the above timeline expires or the date of the last communication from the concerned Regulated Entity, whichever is later"
-    source: {url: "https://www.rbi.org.in/commonperson/english/scripts/FAQs.aspx?Id=3407", fetched_on: 2026-11-19}
+    quote: "the complaint is made to the RBI Ombudsman within 90 days from the date on which the timeline specified in sub-clause (1)(f) expires or the date of the last communication from the concerned Regulated Entity, whichever is later"
+    source: {url: "https://rbidocs.rbi.org.in/rdocs/content/pdfs/SCHEME16012026_A.pdf", fetched_on: 2026-11-19}
     effective_from: 2026-07-01
+    review: {status: verified, verified_by: Hardik Agarwal, verified_on: 2026-11-19}
+
+  - id: rbi.rbios26.no_duplicate_grievance
+    clause: Clause 10(1)(h)-(k)
+    kind: no_duplicate_grievance
+    text: >-
+      Not maintainable if the same grievance is pending before, or settled or dealt with on merits by, the RBI
+      Ombudsman or any court, tribunal, arbitrator or other judicial or quasi-judicial forum. Explanation 1 excludes
+      criminal proceedings and police investigations from "same grievance" for (j) and (k).
+    quote: "the complaint is not relating to the same grievance, which is already pending before the Office of the RBI Ombudsman, whether or not received from the same Complainant or along with one or more Complainants; or (i) the complaint is not relating to the same grievance, which is already settled or dealt with on merits, by the Office of the RBI Ombudsman, whether or not received from the same Complainant or along with one or more Complainants; and (j) the complaint is not relating to the same grievance, which is already pending before any Court, Tribunal or Arbitrator or any other judicial or quasi-judicial forum, whether or not received from the same Complainant or along with one or more of the Complainants; or (k) the complaint is not relating to the same grievance, which is already settled or dealt with on merits, by any Court, Tribunal or Arbitrator or any other judicial or quasi-judicial forum, whether or not received from the same Complainant or along with one or more of the Complainants"
+    source: {url: "https://rbidocs.rbi.org.in/rdocs/content/pdfs/SCHEME16012026_A.pdf", fetched_on: 2026-11-19}
+    effective_from: 2026-07-01
+    review: {status: verified, verified_by: Hardik Agarwal, verified_on: 2026-11-19}
 
   - id: rbi.rbios26.limitation
-    clause: Clause 10 (via FAQ Q16/Q17) - exact sub-clause to confirm
+    clause: Clause 10(1)(l)
     kind: limitation
     text: >-
       The complaint to the bank must have been made within the limitation period of the Limitation Act, 1963.
       VAPAS stores no number for this period because no allowed source states it.
-    quote: "the complaint to the Regulated Entity must have been made before expiry of the period of limitation prescribed under the Limitation Act, 1963"
-    source: {url: "https://www.rbi.org.in/commonperson/english/scripts/FAQs.aspx?Id=3407", fetched_on: 2026-11-19}
+    quote: "the complaint to the Regulated Entity was made before the expiry of the period of limitation prescribed under the Limitation Act, 1963, for such claims"
+    source: {url: "https://rbidocs.rbi.org.in/rdocs/content/pdfs/SCHEME16012026_A.pdf", fetched_on: 2026-11-19}
     effective_from: 2026-07-01
+    review: {status: verified, verified_by: Hardik Agarwal, verified_on: 2026-11-19}
+
+  - id: rbi.rbios26.non_maintainable_rejected
+    clause: Clause 10(3)
+    kind: non_maintainable_rejected
+    text: A complaint failing any 10(1) condition, or excluded under 10(2), is rejected at the outset without examination.
+    quote: "Complaints not meeting the eligibility conditions as specified under sub-clause (1) and complaints that are mentioned in sub-clause (2), shall be rejected at the outset as non-maintainable without further examination, with appropriate communication to the Complainant."
+    source: {url: "https://rbidocs.rbi.org.in/rdocs/content/pdfs/SCHEME16012026_A.pdf", fetched_on: 2026-11-19}
+    effective_from: 2026-07-01
+    review: {status: verified, verified_by: Hardik Agarwal, verified_on: 2026-11-19}
 
   - id: rbi.rbios26.filing_channels
-    clause: FAQ Q9 - scheme clause to confirm
+    clause: Clause 11(1) and 11(2)
     kind: filing_channel
-    text: "Online at https://cms.rbi.org.in; e-mail crpc@rbi.org.in; post to CRPC, Reserve Bank of India, Central Vista, Sector 17, Chandigarh - 160017."
-    quote: "Online: through the CMS portal at https://cms.rbi.org.in. E-mail: by sending the complaint to crpc@rbi.org.in."
-    source: {url: "https://www.rbi.org.in/commonperson/english/scripts/FAQs.aspx?Id=3407", fetched_on: 2026-11-19}
+    text: >-
+      Online through https://cms.rbi.org.in, or by e-mail or physical mode to the Centralised Receipt and Processing
+      Centre as notified by RBI; physical complaints must be signed. Contact details as notified (RBI FAQ Q9):
+      crpc@rbi.org.in; CRPC, Reserve Bank of India, Central Vista, Sector 17, Chandigarh - 160017.
+    quote: "The complaint may be lodged online through the portal https://cms.rbi.org.in. (2) The complaint may also be submitted through e-mail or physical mode to the Centralised Receipt and Processing Centre as notified by the Reserve Bank. The complaint, if submitted in physical form, shall be duly signed by the Complainant or by the authorised representative. The complaint submitted in electronic or physical mode shall be in such format as specified in Annex."
+    source: {url: "https://rbidocs.rbi.org.in/rdocs/content/pdfs/SCHEME16012026_A.pdf", fetched_on: 2026-11-19}
     effective_from: 2026-07-01
-
-  - id: rbi.rbios26.appeal
-    clause: FAQ Q31/Q32 - scheme clause to confirm
-    kind: appeal_deadline
-    days: 30
-    anchor: date of receipt of the Award
-    text: The complainant may appeal an Award within 30 days; the Appellate Authority may allow up to 30 more days for sufficient reason.
-    quote: "A complainant may file an appeal within 30 days from the date of receiving the Award."
-    source: {url: "https://www.rbi.org.in/commonperson/english/scripts/FAQs.aspx?Id=3407", fetched_on: 2026-11-19}
-    effective_from: 2026-07-01
-
-  - id: rbi.rbios26.transition
-    clause: FAQ Q1 - scheme clause to confirm
-    kind: transition
-    text: Complaints received before 1 Jul 2026, appeals from RB-IOS 2021 decisions and execution of RB-IOS 2021 awards stay under RB-IOS 2021.
-    quote: "Complaints received before July 1, 2026; appeals arising from decisions under RB-IOS, 2021; and execution of awards issued thereunder will continue to be governed by RB-IOS, 2021"
-    source:
-      url: https://www.rbi.org.in/commonman/Upload/English/FAQs/PDFs/RBIOS01072026.pdf
-      fetched_on: 2026-11-19
-      sha256: db923b0fe96466e98510a151404c3022b5d8e3a48b51e304c142e354ba0dca66
-    effective_from: 2026-07-01
+    review: {status: verified, verified_by: Hardik Agarwal, verified_on: 2026-11-19}

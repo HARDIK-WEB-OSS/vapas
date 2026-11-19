@@ -5,7 +5,6 @@
 *.key
 secrets/
 
-# never commit real statements
 *.pdf
 *.xls
 *.xlsx
@@ -20,3 +19,7 @@ __pycache__/
 .ruff_cache/
 node_modules/
 .next/
+
+CLAUDE.md
+CLAUDE.local.md
+.claude/
