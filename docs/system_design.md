@@ -174,7 +174,7 @@ Hosted model (letter wording polish only, redacted input):
 flowchart LR
   U["User browser / phone"] --> FE["Next.js frontend"]
   FE --> API["FastAPI API (stateless, 2+ instances)"]
-  U -- "presigned PUT" --> OS[("Object storage: MinIO / R2")]
+  U -- "presigned PUT" --> OS[("Object storage: SeaweedFS locally / R2")]
   API -- "presign, verify" --> OS
   API --> PG[("Postgres 16 with RLS")]
   API --> RD[("Redis: rate limits, cache")]
