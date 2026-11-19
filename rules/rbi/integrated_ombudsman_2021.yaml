@@ -1,0 +1,32 @@
+instrument:
+  id: rbi.rbios_2021
+  issuer: RBI
+  title: Reserve Bank - Integrated Ombudsman Scheme, 2021
+  ref_no: null
+  dept_ref: CEPD. PRD. No.S873/13.01.001/2021-22
+  issued_on: 2021-11-12
+  effective_from: 2021-11-12
+  effective_to: 2026-06-30
+  legal_status: superseded
+  page:
+    url: https://www.rbi.org.in/Scripts/NotificationUser.aspx?Id=12192&Mode=0
+    fetched_on: 2026-11-19
+  pdf:
+    url: https://rbidocs.rbi.org.in/rdocs/content/pdfs/RBIOS2021_amendments05082022.pdf
+    fetched_on: 2026-11-19
+  notes: >-
+    Superseded by RB-IOS 2026 for complaints received from 1 Jul 2026 (see rbi.rbios26.transition). Kept for history only;
+    VAPAS v1 drafts new complaints, so it never applies these rules. Amended by CEPD.PRD.No.S544/13.01.001/2022-23
+    (5 Aug 2022) and CO.CEPD.PRS.No.S684/13-55-001/2025-2026 (7 Oct 2025, in force 1 Nov 2025, extends to State and
+    Central Co-operative Banks). Scheme PDF is behind a CAPTCHA; clause 10(2)(a)(ii) wording comes from RBI's PDF via a
+    search snippet and must be checked by the user. Clause 10(2)(a)(i) (30-day wait) was not read and is not encoded.
+
+ombudsman_rules:
+  - id: rbi.rbios21.deadline
+    clause: Clause 10(2)(a)(ii)
+    kind: escalation_deadline
+    anchor: reply from the regulated entity, or the date of the complaint if no reply
+    text: Within one year of the bank's reply, or one year and 30 days from the complaint date if no reply.
+    quote: "within one year after the complainant has received the reply from the Regulated Entity ... or, where no reply is received, within one year and 30 days from the date of the complaint"
+    effective_from: 2021-11-12
+    effective_to: 2026-06-30

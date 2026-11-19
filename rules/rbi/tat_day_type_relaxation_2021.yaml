@@ -1,0 +1,26 @@
+instrument:
+  id: rbi.dpss_s106_2021
+  issuer: RBI
+  title: Relaxation in timeline for compliance with various payment system requirements
+  ref_no: RBI/2021-22/41
+  dept_ref: CO.DPSS.POLC.No.S-106/02-14-003/2021-2022
+  issued_on: 2021-05-21
+  effective_from: 2021-05-21
+  effective_to: 2021-09-30
+  legal_status: expired
+  page:
+    url: https://www.rbi.org.in/commonperson/english/scripts/Notification.aspx?Id=3307
+    fetched_on: 2026-11-19
+  notes: Annexure SN 2. Confirms calendar days applied again from 1 Jan 2021 until this relaxation.
+
+day_type_overrides:
+  - id: rbi.tat_override.working_days_2021
+    clause: Annexure SN 2
+    applies_to: rbi.dpss_629_2019
+    day_type: working
+    effective_from: 2021-05-21
+    effective_to: 2021-09-30
+    quote: "Working days until December 31, 2020 (Calendar days from January 1, 2021) | Working days - Prospective - Until September 30, 2021"
+    ambiguity: >-
+      "Prospective" has no explicit start date; the circular date (21 May 2021) is assumed.
+      Transactions dated 1 Jan 2021 - 20 May 2021 are treated as calendar days but marked needs_review.

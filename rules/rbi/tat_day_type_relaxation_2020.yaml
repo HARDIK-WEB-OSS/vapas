@@ -1,0 +1,23 @@
+instrument:
+  id: rbi.dpss_1897_2020
+  issuer: RBI
+  title: Extension of timeline for compliance with various payment system requirements
+  ref_no: RBI/2019-20/251
+  dept_ref: DPSS.CO.PD.No.1897/02.14.003/2019-20
+  issued_on: 2020-06-04
+  effective_from: 2020-03-24
+  effective_to: 2020-12-31
+  legal_status: expired
+  page:
+    url: https://www.rbi.org.in/Scripts/NotificationUser.aspx?Id=11910&Mode=0
+    fetched_on: 2026-11-19
+  notes: Annex SN 3. Temporary relaxation; issued 4 Jun 2020 but applies from 24 Mar 2020.
+
+day_type_overrides:
+  - id: rbi.tat_override.working_days_2020
+    clause: Annex SN 3
+    applies_to: rbi.dpss_629_2019
+    day_type: working
+    effective_from: 2020-03-24
+    effective_to: 2020-12-31
+    quote: "\"calendar days\" to be read as \"working days\" | present timeline: w.e.f. March 24, 2020 | revised timeline: until December 31, 2020"
