@@ -5,7 +5,8 @@ x-backend: &backend
   pull_policy: never
   env_file: .env
   environment:
-    DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    DATABASE_URL: postgresql+asyncpg://vapas_app:${APP_DB_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    MIGRATION_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     REDIS_URL: redis://redis:6379/0
     S3_ENDPOINT_URL: http://objectstore:8333
     PRIVATE_FIXTURES_DIR: ""
@@ -69,13 +70,34 @@ services:
       objectstore:
         condition: service_healthy
 
+  db-roles:
+    image: postgres:16-alpine
+    environment:
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD}
+      WORKER_DB_PASSWORD: ${WORKER_DB_PASSWORD}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        psql -v app_password="$$APP_DB_PASSWORD" -v worker_password="$$WORKER_DB_PASSWORD"
+        -f /roles/roles.sql
+    volumes:
+      - ./infra/postgres:/roles:ro
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   migrate:
     <<: *backend
     command: ["alembic", "upgrade", "head"]
     restart: "no"
     depends_on:
-      postgres:
-        condition: service_healthy
+      db-roles:
+        condition: service_completed_successfully
 
   api:
     <<: *backend
@@ -101,6 +123,11 @@ services:
   worker:
     <<: *backend
     command: ["python", "-m", "vapas.jobs.worker"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://vapas_worker:${WORKER_DB_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379/0
+      S3_ENDPOINT_URL: http://objectstore:8333
+      PRIVATE_FIXTURES_DIR: ""
     depends_on:
       redis:
         condition: service_healthy

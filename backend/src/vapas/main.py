@@ -4,9 +4,13 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Response, status
 from pydantic import BaseModel
 
+from vapas.api.routes_account import router as account_router
+from vapas.auth.routes import router as auth_router
 from vapas.config import Settings, get_settings
-from vapas.health import Dependencies, Probe, run_probes
+from vapas.errors import register_error_handlers
+from vapas.health import Probe, run_probes
 from vapas.logging_setup import configure_logging
+from vapas.services import Services
 
 
 class Liveness(BaseModel):
@@ -27,14 +31,18 @@ def create_app(settings: Settings | None = None, probes: Mapping[str, Probe] | N
             return
         active = settings or get_settings()
         configure_logging(active.log_level)
-        dependencies = Dependencies.from_settings(active)
-        app.state.probes = dependencies.probes()
+        services = Services.from_settings(active)
+        app.state.services = services
+        app.state.probes = services.dependencies.probes()
         try:
             yield
         finally:
-            await dependencies.close()
+            await services.close()
 
     app = FastAPI(title="VAPAS", lifespan=lifespan)
+    register_error_handlers(app)
+    app.include_router(auth_router)
+    app.include_router(account_router)
 
     @app.get("/health")
     async def health() -> Liveness:

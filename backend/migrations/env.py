@@ -10,9 +10,16 @@ from vapas.config import get_settings
 target_metadata = None
 
 
+def migration_url() -> str:
+    url = get_settings().migration_database_url
+    if url is None:
+        raise RuntimeError("MIGRATION_DATABASE_URL is required to run migrations")
+    return url.get_secret_value()
+
+
 def run_offline() -> None:
     context.configure(
-        url=get_settings().database_url.get_secret_value(),
+        url=migration_url(),
         target_metadata=target_metadata,
         literal_binds=True,
     )
@@ -28,7 +35,7 @@ def _migrate(connection: Connection) -> None:
 
 async def run_online() -> None:
     engine = async_engine_from_config(
-        {"sqlalchemy.url": get_settings().database_url.get_secret_value()},
+        {"sqlalchemy.url": migration_url()},
         prefix="sqlalchemy.",
         poolclass=NullPool,
     )

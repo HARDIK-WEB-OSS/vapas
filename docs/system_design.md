@@ -253,18 +253,21 @@ Conventions: ids are UUIDs except high-volume tables (bigint). Money is integer 
 - `vapas_owner`: owns the schema and runs Alembic migrations. It is the only role allowed to bypass RLS and is never used by the app.
 - `vapas_app`: used by the API. `FORCE ROW LEVEL SECURITY` is set on every user-owned table.
 - `vapas_worker`: used by the worker. RLS also applies; the worker sets the user context from the job before touching user data.
-- Per request or job: `SET LOCAL app.user_id = '<uuid>'` inside the transaction, so a pooled connection never carries one user's context into the next transaction.
+- Roles are created by a separate step (`infra/postgres/roles.sql`, run by the `db-roles` service locally and by the runbook in production) with passwords from the environment. Migrations only grant privileges; they never hold passwords.
+- Per request or job: `SET LOCAL app.user_id = '<uuid>'` inside the transaction (`set_config('app.user_id', ..., true)`), so a pooled connection never carries one user's context into the next transaction.
 - Standard policy, called **owner** below: `USING (user_id = NULLIF(current_setting('app.user_id', true), '')::uuid) WITH CHECK (same)`. If the context is not set, it matches no rows (fail closed).
-- Cross-user scans (reminders due, outbox relay, partition maintenance) go through `SECURITY DEFINER` functions that return only ids and dates, never contents. Login and refresh-token lookup happen before a user is known, so they also go through narrow `SECURITY DEFINER` functions (`auth_lookup(email)`, `session_lookup(token_hash)`).
+- Cross-user scans (reminders due, outbox relay, partition maintenance) go through `SECURITY DEFINER` functions that return only ids and dates, never contents. Login, refresh-token and email-link lookups happen before a user is known, so they go through narrow `SECURITY DEFINER` functions (`auth_lookup(email)`, `session_lookup(token_hash)`, `email_token_lookup(token_hash, purpose)`) with a fixed `search_path`.
+- Access tokens are short-lived JWTs (15 min) carrying the user id and session id. Every authenticated request opens a transaction as that user and checks the session is still active, so logout and refresh-token reuse take effect immediately.
 
 ### 5.2 Tables
 
 | Table | Key columns | Indexes (query served) | RLS |
 |---|---|---|---|
-| `users` | id uuid PK, email citext, password_hash, email_verified_at, locale, created_at | unique(email) (login via `auth_lookup`) | `id = app.user_id` |
+| `users` | id uuid PK, email citext, password_hash, email_verified_at, locale, password_changed_at, created_at | unique(email) (login via `auth_lookup`) | `id = app.user_id` |
 | `user_keys` | user_id PK, wrapped_dek bytea, kek_version int, created_at | PK (load data key per request/job) | owner |
 | `sessions` | id, user_id, family_id, refresh_token_hash, expires_at, revoked_at, replaced_by | unique(refresh_token_hash) (refresh via `session_lookup`); (user_id) where revoked_at is null (list or revoke sessions) | owner |
-| `consent_notices` | version PK, text_en, text_hi, published_at | PK | none: global, read-only for app |
+| `email_tokens` | id, user_id, purpose (verify_email, reset_password), token_hash, expires_at, used_at | unique(token_hash) (link lookup via `email_token_lookup`); (user_id, purpose) | owner |
+| `consent_notices` | version PK, text_en, text_hi, sha256, published_at | PK | none: global, read-only for app |
 | `consents` | id, user_id, notice_version FK, purpose, granted_at, withdrawn_at | (user_id, purpose) (check current consent before processing) | owner |
 | `audit_log` | id bigint, user_id null, actor, action, entity_type, entity_id, at, ip_hash | (user_id, at) (data export, investigations) | owner for SELECT; app may INSERT only; no UPDATE/DELETE grants |
 | `statements` | id uuid, user_id, content_sha256, bank_code, period_from, period_to, status, object_key, parser_name, parser_version, rows_parsed, reconciled, confirmed_at, findings_ready_at, raw_deleted_at, created_at | unique(user_id, content_sha256) (dedupe, idempotency); (user_id, created_at desc) (statement list); (raw_deleted_at) where null (sweeper) | owner |
@@ -355,7 +358,7 @@ If Redis is down: auth routes fail closed (HTTP 503 with a retry message); the g
 ## 8. Security architecture
 
 - **RLS**: section 5.1. Every user-owned table has `FORCE ROW LEVEL SECURITY` with the owner policy. CI runs isolation tests that log in as user A and try to read user B's rows through every table with raw SQL through the app role (M2).
-- **Envelope encryption**: each user has a random 256-bit data key (DEK). It is stored only wrapped (AES-GCM) by a master key (KEK) from the environment, with `kek_version` for rotation. Encrypted fields: narration, reference numbers, finding snapshots, letter bodies, account numbers. Masked last 4 digits are stored in plain text where the UI needs them. Equality lookups on reference numbers use a per-user keyed HMAC (`ref_hmac`), so matching by UTR works without decrypting. Deleting a user's DEK makes any copy left in backups unreadable (crypto-shredding), which supports the right to erase. KEK rotation re-wraps DEKs only; data is not re-encrypted.
+- **Envelope encryption** (implemented in `security/crypto.py`, details and rotation plan in `docs/privacy.md`): each user has a random 256-bit data key (DEK). It is stored only wrapped (AES-GCM) by a master key (KEK) from the environment, with `kek_version` for rotation. Encrypted fields: narration, reference numbers, finding snapshots, letter bodies, account numbers. Masked last 4 digits are stored in plain text where the UI needs them. Equality lookups on reference numbers use a per-user keyed HMAC (`ref_hmac`), so matching by UTR works without decrypting. Deleting a user's DEK makes any copy left in backups unreadable (crypto-shredding), which supports the right to erase. KEK rotation re-wraps DEKs only; data is not re-encrypted.
 - **Redaction boundary**: `llm_gateway` is the only path to any model. For the hosted route it redacts account numbers, card numbers, names, phone numbers, emails, PAN, UPI IDs and IFSC-plus-account patterns, then runs a second scanner on the output of redaction and blocks the call if anything matching those patterns remains. The local route accepts unredacted statement text because it never leaves the machine. Prompts and responses are not logged; only token counts and latency.
 - **Presigned URLs**: upload URLs expire in 5 minutes, are bound to a content length range and to the key `raw/{user_id}/{statement_id}`; there are no download URLs for raw files (only the worker reads them). The bucket is private, without public access or listing.
 - **Upload guard**: runs in the worker: size limit, PDF magic bytes, page limit, rejects JavaScript, embedded files and launch actions, timeouts per page.

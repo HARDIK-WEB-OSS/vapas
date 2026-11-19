@@ -12,6 +12,9 @@ BASE_ENV = {
     "S3_ACCESS_KEY_ID": "test-key",
     "S3_SECRET_ACCESS_KEY": "secret-s3-password",
     "S3_BUCKET_RAW": "vapas-raw",
+    "JWT_SECRET": "test-jwt-secret-0123456789abcdef0123456789",
+    "KEK_KEYS": '{"1": "dmFwYXMtdGVzdC1rZXktZW5jcnlwdGlvbi12MS0wMDA="}',
+    "KEK_ACTIVE_VERSION": "1",
 }
 
 
@@ -24,6 +27,6 @@ def repo_root() -> Path:
 def base_env(monkeypatch: pytest.MonkeyPatch) -> dict[str, str]:
     for key, value in BASE_ENV.items():
         monkeypatch.setenv(key, value)
-    for key in ("PRIVATE_FIXTURES_DIR", "CLAIM_LOOKBACK_MONTHS", "S3_REGION", "LOG_LEVEL"):
+    for key in ("PRIVATE_FIXTURES_DIR", "CLAIM_LOOKBACK_MONTHS", "S3_REGION", "LOG_LEVEL", "MIGRATION_DATABASE_URL"):
         monkeypatch.delenv(key, raising=False)
     return dict(BASE_ENV)
