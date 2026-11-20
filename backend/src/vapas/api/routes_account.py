@@ -110,6 +110,8 @@ async def _statement_data(user: CurrentUser, services: Services) -> dict[str, li
             "direction": t.direction,
             "amount_paise": t.amount_paise,
             "balance_paise": t.balance_paise,
+            "channel": t.channel,
+            "kind": t.kind,
             "narration": cipher.decrypt(bytes(t.narration_enc), NARRATION),
             "ref_no": cipher.decrypt(bytes(t.ref_enc), REF_NO) if t.ref_enc else None,
         }

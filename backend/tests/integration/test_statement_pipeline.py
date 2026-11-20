@@ -10,6 +10,7 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
+from vapas.classify.channel_rules import CLASSIFIER_VERSION, classify
 from vapas.config import Settings
 from vapas.ingest.model import FileKind
 from vapas.jobs.context import WorkerContext
@@ -338,3 +339,26 @@ def test_sweeper_deletes_stale_raw_files_and_expires_unconfirmed_uploads(
     assert asyncio.run(sweep(datetime.now(UTC) + timedelta(hours=2))) >= 1
     assert not raw_exists(live_settings, sid)
     assert statement(client, token, sid)["status"] == "expired"
+
+
+def test_worker_stores_channel_kind_and_reference(
+    client: TestClient, live_settings: Settings, worker: WorkerContext
+) -> None:
+    token = verified_user(client, "asha@example.in")
+    synthetic = generate("SBI", 12, count=60)
+    sid = upload(client, token, render_csv(synthetic), FileKind.CSV)["statement_id"]
+    confirm(client, token, sid)
+    drain(worker)
+    stored = owner_sql(
+        live_settings,
+        "SELECT row_index, channel, kind, classifier_version, ext_ref_hmac IS NOT NULL AS has_ref "
+        "FROM transactions WHERE statement_id = :s ORDER BY row_index",
+        {"s": sid},
+    )
+    expected = [classify(r.narration, r.direction) for r in expected_rows(synthetic)]
+    assert [(r.channel, r.kind) for r in stored] == [(e.channel.value, e.kind.value) for e in expected]
+    assert [r.has_ref for r in stored] == [e.reference is not None for e in expected]
+    assert {r.classifier_version for r in stored} == {CLASSIFIER_VERSION}
+    assert any(r.kind == "reversal" for r in stored)
+    export = client.get("/account/export", headers=bearer(token)).json()
+    assert {t["channel"] for t in export["transactions"]} >= {"upi"}

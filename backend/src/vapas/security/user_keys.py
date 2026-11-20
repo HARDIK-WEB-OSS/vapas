@@ -9,6 +9,8 @@ from vapas.security.crypto import FieldCipher, KeyRing
 PDF_PASSWORD_TTL_SECONDS = 900
 NARRATION = "transactions.narration"
 REF_NO = "transactions.ref_no"
+EXT_REF = "transactions.ext_ref"
+REFERENCE_INDEX = "transactions.reference"
 
 
 class MissingDataKeyError(LookupError):

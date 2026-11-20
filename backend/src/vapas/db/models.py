@@ -143,6 +143,10 @@ transactions = Table(
     Column("narration_enc", LargeBinary, nullable=False),
     Column("ref_enc", LargeBinary),
     Column("ref_hmac", LargeBinary),
+    Column("kind", Text),
+    Column("ext_ref_enc", LargeBinary),
+    Column("ext_ref_hmac", LargeBinary),
+    Column("classifier_version", SmallInteger),
 )
 
 jobs = Table(

@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Any
 from uuid import UUID
 
+from vapas.classify.channel_rules import CLASSIFIER_VERSION, classify
 from vapas.db import statements as store
 from vapas.ingest.layouts import Layout
 from vapas.ingest.llm_fallback import FallbackRejectedError, infer_layout
@@ -25,7 +26,7 @@ from vapas.jobs.context import WorkerContext
 from vapas.llm_gateway.gateway import BudgetExceededError, LlmUnavailableError, SensitiveDataBlockedError
 from vapas.security.crypto import FieldCipher
 from vapas.security.upload_guard import UploadRejectedError, check_upload
-from vapas.security.user_keys import NARRATION, REF_NO, take_pdf_password, user_cipher
+from vapas.security.user_keys import EXT_REF, NARRATION, REF_NO, REFERENCE_INDEX, take_pdf_password, user_cipher
 from vapas.storage.object_store import delete_object, read_object
 
 log = logging.getLogger(__name__)
@@ -42,6 +43,7 @@ class Outcome:
 
 def _encrypted_row(cipher: FieldCipher, user_id: UUID, statement_id: UUID, row: ParsedRow) -> dict[str, Any]:
     ref = row.ref_no.strip() if row.ref_no else None
+    label = classify(row.narration, row.direction)
     return {
         "txn_date": row.txn_date,
         "user_id": user_id,
@@ -53,7 +55,12 @@ def _encrypted_row(cipher: FieldCipher, user_id: UUID, statement_id: UUID, row: 
         "balance_paise": row.balance_paise,
         "narration_enc": cipher.encrypt(row.narration, NARRATION),
         "ref_enc": cipher.encrypt(ref, REF_NO) if ref else None,
-        "ref_hmac": cipher.blind_index(ref, REF_NO) if ref else None,
+        "ref_hmac": cipher.blind_index(ref, REFERENCE_INDEX) if ref else None,
+        "channel": label.channel.value,
+        "kind": label.kind.value,
+        "ext_ref_enc": cipher.encrypt(label.reference, EXT_REF) if label.reference else None,
+        "ext_ref_hmac": cipher.blind_index(label.reference, REFERENCE_INDEX) if label.reference else None,
+        "classifier_version": CLASSIFIER_VERSION,
     }
 
 

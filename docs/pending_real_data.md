@@ -12,7 +12,7 @@ Rules for running them:
 |---|---|---|---|---|
 | 1 | M3 | % rows parsed and % statements fully reconciled on real statements, per bank | `backend/scripts/eval_private.py` | PENDING REAL DATA |
 | 2 | M3 | Share of real statements that need the LLM fallback (feeds the [A: M3] fallback share in `system_design.md` section 2.6) | `backend/scripts/eval_private.py` | PENDING REAL DATA |
-| 3 | M4 | Channel rule coverage and precision on a labelled sample of real narrations; decides whether `channel_model.py` (LightGBM) is built (threshold about 95% coverage) | `backend/scripts/measure_rule_coverage.py` | PENDING REAL DATA |
+| 3 | M4 | Channel rule coverage and precision on a labelled sample of real narrations; decides whether `channel_model.py` (LightGBM) is built (threshold about 95% coverage). Steps: `uv run python scripts/measure_rule_coverage.py coverage`, then `sample` (writes `labels/channel_sample.csv` inside PRIVATE_FIXTURES_DIR), label `true_channel` and `true_kind` by hand, then `score`. Also check the reversal, refund, compensation and charge keywords against real wording | `backend/scripts/measure_rule_coverage.py` | PENDING REAL DATA |
 | 4 | M5 | Detector on real statements: aggregate finding counts by kind; every claim reviewed manually | `backend/scripts/eval_private.py` | PENDING REAL DATA |
 | 5 | M5 | Demand: % of statements with at least one confirmed claim, total Rs owed, total reversals found (on time + late, as a parser sanity check), duplicates found. Replaces the [U] assumptions in `system_design.md` section 2.5 | `backend/scripts/eval_private.py` | PENDING REAL DATA |
 | 6 | M3 | Parser order: confirm which banks appear most in the real statements and reorder parser work if needed | manual | PENDING REAL DATA |
