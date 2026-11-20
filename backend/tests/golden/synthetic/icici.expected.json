@@ -1,0 +1,606 @@
+{
+ "bank": "ICICI",
+ "opening_balance_paise": 18954766,
+ "rows": [
+  {
+   "row_index": 0,
+   "txn_date": "2025-04-03",
+   "value_date": "2025-04-03",
+   "narration": "UPI/DR/80554519799 7/SUNITA DEVI/suni ta@oksbi/Payment",
+   "ref_no": "5929814625",
+   "direction": "debit",
+   "amount_paise": 36657,
+   "balance_paise": 18918109
+  },
+  {
+   "row_index": 1,
+   "txn_date": "2025-04-06",
+   "value_date": "2025-04-06",
+   "narration": "UPI/DR/23978062639 9/ANIL MEHTA/anil@ oksbi/Payment",
+   "ref_no": "6808304904",
+   "direction": "debit",
+   "amount_paise": 10000000,
+   "balance_paise": 8918109
+  },
+  {
+   "row_index": 2,
+   "txn_date": "2025-04-09",
+   "value_date": "2025-04-10",
+   "narration": "REV UPI/7514339878 11/IRCTC/FAILED TX N REVERSAL",
+   "ref_no": null,
+   "direction": "credit",
+   "amount_paise": 10000000,
+   "balance_paise": 18918109
+  },
+  {
+   "row_index": 3,
+   "txn_date": "2025-04-09",
+   "value_date": "2025-04-09",
+   "narration": "UPI/DR/97538369567 9/ANIL MEHTA/anil@ oksbi/Payment",
+   "ref_no": "6462220002",
+   "direction": "debit",
+   "amount_paise": 333128,
+   "balance_paise": 18584981
+  },
+  {
+   "row_index": 4,
+   "txn_date": "2025-04-10",
+   "value_date": "2025-04-11",
+   "narration": "IMPS/P2A/762038623 189/SUNITA DEVI",
+   "ref_no": null,
+   "direction": "credit",
+   "amount_paise": 10000000,
+   "balance_paise": 28584981
+  },
+  {
+   "row_index": 5,
+   "txn_date": "2025-04-10",
+   "value_date": "2025-04-10",
+   "narration": "ACH D- APOLLO PHAR MACY MANDATE",
+   "ref_no": null,
+   "direction": "debit",
+   "amount_paise": 10000000,
+   "balance_paise": 18584981
+  },
+  {
+   "row_index": 6,
+   "txn_date": "2025-04-10",
+   "value_date": "2025-04-11",
+   "narration": "REV UPI/5284588376 19/JIO RECHARGE/FA ILED TXN REVERSAL",
+   "ref_no": null,
+   "direction": "credit",
+   "amount_paise": 10000000,
+   "balance_paise": 28584981
+  },
+  {
+   "row_index": 7,
+   "txn_date": "2025-04-10",
+   "value_date": "2025-04-10",
+   "narration": "IMPS/P2A/336617665 550/SUNITA DEVI",
+   "ref_no": null,
+   "direction": "credit",
+   "amount_paise": 10000000,
+   "balance_paise": 38584981
+  },
+  {
+   "row_index": 8,
+   "txn_date": "2025-04-13",
+   "value_date": "2025-04-13",
+   "narration": "REV UPI/8340449499 04/JIO RECHARGE/FA ILED TXN REVERSAL",
+   "ref_no": null,
+   "direction": "credit",
+   "amount_paise": 10000000,
+   "balance_paise": 48584981
+  },
+  {
+   "row_index": 9,
+   "txn_date": "2025-04-14",
+   "value_date": "2025-04-14",
+   "narration": "UPI/CR/27435594338 2/FATIMA KHAN/fati ma@okaxis/Payment",
+   "ref_no": null,
+   "direction": "credit",
+   "amount_paise": 380035,
+   "balance_paise": 48965016
+  },
+  {
+   "row_index": 10,
+   "txn_date": "2025-04-14",
+   "value_date": "2025-04-14",
+   "narration": "ATM WDL/108610/MUM BAI",
+   "ref_no": "5361707341",
+   "direction": "debit",
+   "amount_paise": 51796,
+   "balance_paise": 48913220
+  },
+  {
+   "row_index": 11,
+   "txn_date": "2025-04-15",
+   "value_date": "2025-04-15",
+   "narration": "UPI/DR/41354897115 5/SUNITA DEVI/suni ta@okaxis/Payment",
+   "ref_no": "9547062160",
+   "direction": "debit",
+   "amount_paise": 373028,
+   "balance_paise": 48540192
+  },
+  {
+   "row_index": 12,
+   "txn_date": "2025-04-16",
+   "value_date": "2025-04-16",
+   "narration": "UPI/DR/37909156301 1/ANIL MEHTA/anil@ okhdfc/Payment",
+   "ref_no": null,
+   "direction": "debit",
+   "amount_paise": 152990,
+   "balance_paise": 48387202
+  },
+  {
+   "row_index": 13,
+   "txn_date": "2025-04-16",
+   "value_date": "2025-04-16",
+   "narration": "ATM WDL/432754/MUM BAI",
+   "ref_no": "5593917317",
+   "direction": "debit",
+   "amount_paise": 10000000,
+   "balance_paise": 38387202
+  },
+  {
+   "row_index": 14,
+   "txn_date": "2025-04-18",
+   "value_date": "2025-04-19",
+   "narration": "POS 4321XXXXXXXX86 57 IRCTC",
+   "ref_no": "6564146425",
+   "direction": "debit",
+   "amount_paise": 135934,
+   "balance_paise": 38251268
+  },
+  {
+   "row_index": 15,
+   "txn_date": "2025-04-19",
+   "value_date": "2025-04-19",
+   "narration": "NEFT CR-HDFC000123 4-RAVI KUMAR-SALAR Y",
+   "ref_no": null,
+   "direction": "credit",
+   "amount_paise": 22669,
+   "balance_paise": 38273937
+  },
+  {
+   "row_index": 16,
+   "txn_date": "2025-04-19",
+   "value_date": "2025-04-19",
+   "narration": "UPI/CR/52995478200 8/PRIYA SHARMA/pri ya@oksbi/Payment",
+   "ref_no": "3871090556",
+   "direction": "credit",
+   "amount_paise": 76407,
+   "balance_paise": 38350344
+  },
+  {
+   "row_index": 17,
+   "txn_date": "2025-04-21",
+   "value_date": "2025-04-22",
+   "narration": "POS 4321XXXXXXXX92 98 IRCTC",
+   "ref_no": null,
+   "direction": "debit",
+   "amount_paise": 431632,
+   "balance_paise": 37918712
+  },
+  {
+   "row_index": 18,
+   "txn_date": "2025-04-24",
+   "value_date": "2025-04-24",
+   "narration": "IMPS/P2A/574640239 287/ANIL MEHTA",
+   "ref_no": null,
+   "direction": "credit",
+   "amount_paise": 10000000,
+   "balance_paise": 47918712
+  },
+  {
+   "row_index": 19,
+   "txn_date": "2025-04-25",
+   "value_date": "2025-04-25",
+   "narration": "UPI/DR/27150100569 3/RAVI KUMAR/ravi@ okhdfc/Payment",
+   "ref_no": "3379256404",
+   "direction": "debit",
+   "amount_paise": 10000000,
+   "balance_paise": 37918712
+  },
+  {
+   "row_index": 20,
+   "txn_date": "2025-04-26",
+   "value_date": "2025-04-26",
+   "narration": "ACH D- IRCTC MANDA TE",
+   "ref_no": "7090122727",
+   "direction": "debit",
+   "amount_paise": 295976,
+   "balance_paise": 37622736
+  },
+  {
+   "row_index": 21,
+   "txn_date": "2025-04-28",
+   "value_date": "2025-04-29",
+   "narration": "ATM WDL/251950/MUM BAI",
+   "ref_no": "9323959519",
+   "direction": "debit",
+   "amount_paise": 10000000,
+   "balance_paise": 27622736
+  },
+  {
+   "row_index": 22,
+   "txn_date": "2025-05-01",
+   "value_date": "2025-05-01",
+   "narration": "UPI/DR/77375862702 9/FATIMA KHAN/fati ma@okhdfc/Payment",
+   "ref_no": "8034689414",
+   "direction": "debit",
+   "amount_paise": 10000000,
+   "balance_paise": 17622736
+  },
+  {
+   "row_index": 23,
+   "txn_date": "2025-05-01",
+   "value_date": "2025-05-02",
+   "narration": "UPI/CR/13235511655 0/SUNITA DEVI/suni ta@oksbi/Payment",
+   "ref_no": "2800189653",
+   "direction": "credit",
+   "amount_paise": 10000000,
+   "balance_paise": 27622736
+  },
+  {
+   "row_index": 24,
+   "txn_date": "2025-05-02",
+   "value_date": "2025-05-02",
+   "narration": "IMPS/P2A/116642571 368/SUNITA DEVI",
+   "ref_no": "8880949046",
+   "direction": "credit",
+   "amount_paise": 10000000,
+   "balance_paise": 37622736
+  },
+  {
+   "row_index": 25,
+   "txn_date": "2025-05-03",
+   "value_date": "2025-05-03",
+   "narration": "ACH D- APOLLO PHAR MACY MANDATE",
+   "ref_no": "1320022956",
+   "direction": "debit",
+   "amount_paise": 10000000,
+   "balance_paise": 27622736
+  },
+  {
+   "row_index": 26,
+   "txn_date": "2025-05-05",
+   "value_date": "2025-05-06",
+   "narration": "ACH D- BIGBASKET M ANDATE",
+   "ref_no": "4442590311",
+   "direction": "debit",
+   "amount_paise": 10000000,
+   "balance_paise": 17622736
+  },
+  {
+   "row_index": 27,
+   "txn_date": "2025-05-06",
+   "value_date": "2025-05-06",
+   "narration": "UPI/CR/81715674505 2/RAVI KUMAR/ravi@ okhdfc/Payment",
+   "ref_no": null,
+   "direction": "credit",
+   "amount_paise": 10000000,
+   "balance_paise": 27622736
+  },
+  {
+   "row_index": 28,
+   "txn_date": "2025-05-06",
+   "value_date": "2025-05-07",
+   "narration": "REV UPI/4349897440 73/IRCTC/FAILED TX N REVERSAL",
+   "ref_no": "4745924518",
+   "direction": "credit",
+   "amount_paise": 10000000,
+   "balance_paise": 37622736
+  },
+  {
+   "row_index": 29,
+   "txn_date": "2025-05-06",
+   "value_date": "2025-05-06",
+   "narration": "ATM WDL/935459/MUM BAI",
+   "ref_no": "3599634687",
+   "direction": "debit",
+   "amount_paise": 10000000,
+   "balance_paise": 27622736
+  },
+  {
+   "row_index": 30,
+   "txn_date": "2025-05-09",
+   "value_date": "2025-05-09",
+   "narration": "ACH D- SWIGGY MAND ATE",
+   "ref_no": "2871669114",
+   "direction": "debit",
+   "amount_paise": 10000000,
+   "balance_paise": 17622736
+  },
+  {
+   "row_index": 31,
+   "txn_date": "2025-05-09",
+   "value_date": "2025-05-10",
+   "narration": "REV UPI/5965044045 12/SWIGGY/FAILED T XN REVERSAL",
+   "ref_no": null,
+   "direction": "credit",
+   "amount_paise": 10000000,
+   "balance_paise": 27622736
+  },
+  {
+   "row_index": 32,
+   "txn_date": "2025-05-12",
+   "value_date": "2025-05-12",
+   "narration": "ATM WDL/833692/MUM BAI",
+   "ref_no": "9348374978",
+   "direction": "debit",
+   "amount_paise": 10000000,
+   "balance_paise": 17622736
+  },
+  {
+   "row_index": 33,
+   "txn_date": "2025-05-13",
+   "value_date": "2025-05-14",
+   "narration": "UPI/DR/48125831460 3/ARJUN NAIR/arjun @okhdfc/Payment",
+   "ref_no": "1884823451",
+   "direction": "debit",
+   "amount_paise": 132472,
+   "balance_paise": 17490264
+  },
+  {
+   "row_index": 34,
+   "txn_date": "2025-05-13",
+   "value_date": "2025-05-13",
+   "narration": "ACH D- IRCTC MANDA TE",
+   "ref_no": null,
+   "direction": "debit",
+   "amount_paise": 10000000,
+   "balance_paise": 7490264
+  },
+  {
+   "row_index": 35,
+   "txn_date": "2025-05-14",
+   "value_date": "2025-05-14",
+   "narration": "IMPS/P2A/830040271 138/FATIMA KHAN",
+   "ref_no": "3543504710",
+   "direction": "credit",
+   "amount_paise": 10000000,
+   "balance_paise": 17490264
+  },
+  {
+   "row_index": 36,
+   "txn_date": "2025-05-14",
+   "value_date": "2025-05-14",
+   "narration": "IMPS/P2A/944895431 489/ANIL MEHTA",
+   "ref_no": null,
+   "direction": "credit",
+   "amount_paise": 4763,
+   "balance_paise": 17495027
+  },
+  {
+   "row_index": 37,
+   "txn_date": "2025-05-15",
+   "value_date": "2025-05-15",
+   "narration": "POS 4321XXXXXXXX55 97 BIGBASKET",
+   "ref_no": "7812634123",
+   "direction": "debit",
+   "amount_paise": 83717,
+   "balance_paise": 17411310
+  },
+  {
+   "row_index": 38,
+   "txn_date": "2025-05-16",
+   "value_date": "2025-05-16",
+   "narration": "UPI/CR/47972780303 7/ARJUN NAIR/arjun @okhdfc/Payment",
+   "ref_no": "3278583751",
+   "direction": "credit",
+   "amount_paise": 176470,
+   "balance_paise": 17587780
+  },
+  {
+   "row_index": 39,
+   "txn_date": "2025-05-16",
+   "value_date": "2025-05-16",
+   "narration": "ACH D- SWIGGY MAND ATE",
+   "ref_no": "5969896234",
+   "direction": "debit",
+   "amount_paise": 2149,
+   "balance_paise": 17585631
+  },
+  {
+   "row_index": 40,
+   "txn_date": "2025-05-17",
+   "value_date": "2025-05-17",
+   "narration": "IMPS/P2A/906066848 638/SUNITA DEVI",
+   "ref_no": "3736999557",
+   "direction": "credit",
+   "amount_paise": 104919,
+   "balance_paise": 17690550
+  },
+  {
+   "row_index": 41,
+   "txn_date": "2025-05-19",
+   "value_date": "2025-05-20",
+   "narration": "POS 4321XXXXXXXX31 72 APOLLO PHARMACY",
+   "ref_no": "5570343194",
+   "direction": "debit",
+   "amount_paise": 10000000,
+   "balance_paise": 7690550
+  },
+  {
+   "row_index": 42,
+   "txn_date": "2025-05-22",
+   "value_date": "2025-05-23",
+   "narration": "UPI/CR/22815505242 0/ANIL MEHTA/anil@ okhdfc/Payment",
+   "ref_no": null,
+   "direction": "credit",
+   "amount_paise": 332640,
+   "balance_paise": 8023190
+  },
+  {
+   "row_index": 43,
+   "txn_date": "2025-05-23",
+   "value_date": "2025-05-23",
+   "narration": "UPI/DR/76319351448 2/RAVI KUMAR/ravi@ okhdfc/Payment",
+   "ref_no": null,
+   "direction": "debit",
+   "amount_paise": 439187,
+   "balance_paise": 7584003
+  },
+  {
+   "row_index": 44,
+   "txn_date": "2025-05-26",
+   "value_date": "2025-05-26",
+   "narration": "ATM WDL/104368/MUM BAI",
+   "ref_no": null,
+   "direction": "debit",
+   "amount_paise": 486767,
+   "balance_paise": 7097236
+  },
+  {
+   "row_index": 45,
+   "txn_date": "2025-05-27",
+   "value_date": "2025-05-27",
+   "narration": "POS 4321XXXXXXXX21 64 IRCTC",
+   "ref_no": "5216269961",
+   "direction": "debit",
+   "amount_paise": 436420,
+   "balance_paise": 6660816
+  },
+  {
+   "row_index": 46,
+   "txn_date": "2025-05-27",
+   "value_date": "2025-05-28",
+   "narration": "ATM WDL/221522/MUM BAI",
+   "ref_no": "1535241847",
+   "direction": "debit",
+   "amount_paise": 254766,
+   "balance_paise": 6406050
+  },
+  {
+   "row_index": 47,
+   "txn_date": "2025-05-29",
+   "value_date": "2025-05-29",
+   "narration": "REV UPI/4182368765 11/IRCTC/FAILED TX N REVERSAL",
+   "ref_no": "1528500929",
+   "direction": "credit",
+   "amount_paise": 254766,
+   "balance_paise": 6660816
+  },
+  {
+   "row_index": 48,
+   "txn_date": "2025-05-30",
+   "value_date": "2025-05-30",
+   "narration": "UPI/CR/47928229400 1/ARJUN NAIR/arjun @oksbi/Payment",
+   "ref_no": "7437817511",
+   "direction": "credit",
+   "amount_paise": 10000000,
+   "balance_paise": 16660816
+  },
+  {
+   "row_index": 49,
+   "txn_date": "2025-06-02",
+   "value_date": "2025-06-02",
+   "narration": "UPI/CR/83581480129 7/PRIYA SHARMA/pri ya@okhdfc/Payment",
+   "ref_no": "1884295789",
+   "direction": "credit",
+   "amount_paise": 451393,
+   "balance_paise": 17112209
+  },
+  {
+   "row_index": 50,
+   "txn_date": "2025-06-03",
+   "value_date": "2025-06-04",
+   "narration": "UPI/CR/53721669188 9/SUNITA DEVI/suni ta@oksbi/Payment",
+   "ref_no": null,
+   "direction": "credit",
+   "amount_paise": 386708,
+   "balance_paise": 17498917
+  },
+  {
+   "row_index": 51,
+   "txn_date": "2025-06-04",
+   "value_date": "2025-06-05",
+   "narration": "UPI/DR/65301038023 4/ARJUN NAIR/arjun @okaxis/Payment",
+   "ref_no": "4949375781",
+   "direction": "debit",
+   "amount_paise": 10000000,
+   "balance_paise": 7498917
+  },
+  {
+   "row_index": 52,
+   "txn_date": "2025-06-05",
+   "value_date": "2025-06-06",
+   "narration": "NEFT CR-HDFC000123 4-ARJUN NAIR-SALAR Y",
+   "ref_no": "9543929672",
+   "direction": "credit",
+   "amount_paise": 208381,
+   "balance_paise": 7707298
+  },
+  {
+   "row_index": 53,
+   "txn_date": "2025-06-05",
+   "value_date": "2025-06-05",
+   "narration": "UPI/CR/88498540660 9/FATIMA KHAN/fati ma@oksbi/Payment",
+   "ref_no": null,
+   "direction": "credit",
+   "amount_paise": 10000000,
+   "balance_paise": 17707298
+  },
+  {
+   "row_index": 54,
+   "txn_date": "2025-06-07",
+   "value_date": "2025-06-07",
+   "narration": "UPI/CR/45896000066 6/SUNITA DEVI/suni ta@oksbi/Payment",
+   "ref_no": null,
+   "direction": "credit",
+   "amount_paise": 10000000,
+   "balance_paise": 27707298
+  },
+  {
+   "row_index": 55,
+   "txn_date": "2025-06-10",
+   "value_date": "2025-06-10",
+   "narration": "UPI/CR/62134408013 9/RAVI KUMAR/ravi@ oksbi/Payment",
+   "ref_no": null,
+   "direction": "credit",
+   "amount_paise": 10000000,
+   "balance_paise": 37707298
+  },
+  {
+   "row_index": 56,
+   "txn_date": "2025-06-13",
+   "value_date": "2025-06-13",
+   "narration": "UPI/DR/53428544835 5/FATIMA KHAN/fati ma@oksbi/Payment",
+   "ref_no": "5248955182",
+   "direction": "debit",
+   "amount_paise": 296030,
+   "balance_paise": 37411268
+  },
+  {
+   "row_index": 57,
+   "txn_date": "2025-06-13",
+   "value_date": "2025-06-13",
+   "narration": "UPI/DR/57438785446 1/FATIMA KHAN/fati ma@oksbi/Payment",
+   "ref_no": null,
+   "direction": "debit",
+   "amount_paise": 49017,
+   "balance_paise": 37362251
+  },
+  {
+   "row_index": 58,
+   "txn_date": "2025-06-16",
+   "value_date": "2025-06-17",
+   "narration": "IMPS/P2A/280604297 972/SUNITA DEVI",
+   "ref_no": null,
+   "direction": "credit",
+   "amount_paise": 131747,
+   "balance_paise": 37493998
+  },
+  {
+   "row_index": 59,
+   "txn_date": "2025-06-17",
+   "value_date": "2025-06-17",
+   "narration": "ACH D- APOLLO PHAR MACY MANDATE",
+   "ref_no": "9969125875",
+   "direction": "debit",
+   "amount_paise": 10000000,
+   "balance_paise": 27493998
+  }
+ ]
+}

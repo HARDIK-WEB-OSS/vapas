@@ -21,7 +21,10 @@ USER_TABLES = {
     "email_tokens": "user_id",
     "consents": "user_id",
     "audit_log": "user_id",
+    "statements": "user_id",
+    "transactions": "user_id",
 }
+QUEUE_TABLES = {"jobs", "outbox"}
 T = TypeVar("T")
 
 
@@ -62,7 +65,8 @@ def owners_seen(settings: Settings, user_id: str | None) -> dict[str, set[str]]:
 def test_user_a_sees_only_own_rows_in_every_table(live_settings: Settings, two_users: tuple[str, str]) -> None:
     a, _ = two_users
     seen = owners_seen(live_settings, a)
-    assert all(owners == {a} for owners in seen.values()), seen
+    assert all(owners <= {a} for owners in seen.values()), seen
+    assert seen["users"] == seen["sessions"] == seen["consents"] == {a}
 
 
 def test_without_user_context_nothing_is_visible(live_settings: Settings, two_users: tuple[str, str]) -> None:
@@ -137,10 +141,23 @@ def test_every_user_table_forces_row_level_security(live_settings: Settings) -> 
         """
         SELECT c.relname, c.relrowsecurity, c.relforcerowsecurity
         FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-        WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p')
+        WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p') AND NOT c.relispartition
           AND (c.relname = 'users' OR EXISTS (
               SELECT 1 FROM pg_attribute a WHERE a.attrelid = c.oid AND a.attname = 'user_id' AND NOT a.attisdropped))
         """,
     )
     assert {r.relname for r in rows} >= set(USER_TABLES)
-    assert [r.relname for r in rows if not (r.relrowsecurity and r.relforcerowsecurity)] == []
+    unprotected = [r.relname for r in rows if not (r.relrowsecurity and r.relforcerowsecurity)]
+    assert sorted(unprotected) == sorted(QUEUE_TABLES)
+
+
+def test_app_role_cannot_read_queue_tables(live_settings: Settings, two_users: tuple[str, str]) -> None:
+    a, _ = two_users
+    for table in sorted(QUEUE_TABLES):
+        assert "permission denied" in attempt(live_settings, a, f"SELECT * FROM {table}")
+
+
+def test_partitions_cannot_be_read_directly(live_settings: Settings, two_users: tuple[str, str]) -> None:
+    a, _ = two_users
+    owner_sql(live_settings, "SELECT ensure_transaction_partition('2026-01-15')")
+    assert "permission denied" in attempt(live_settings, a, "SELECT * FROM transactions_y2026m01")

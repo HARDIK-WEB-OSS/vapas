@@ -1,16 +1,20 @@
 from sqlalchemy import (
     BigInteger,
+    Boolean,
     Column,
+    Date,
     DateTime,
+    FetchedValue,
     ForeignKey,
     Identity,
+    Integer,
     LargeBinary,
     MetaData,
     SmallInteger,
     Table,
     Text,
 )
-from sqlalchemy.dialects.postgresql import CITEXT, UUID
+from sqlalchemy.dialects.postgresql import CITEXT, JSONB, UUID
 
 metadata = MetaData()
 
@@ -93,4 +97,88 @@ audit_log = Table(
     Column("entity_id", UUID(as_uuid=True)),
     Column("ip_hash", LargeBinary),
     Column("at", DateTime(timezone=True), nullable=False),
+)
+
+statements = Table(
+    "statements",
+    metadata,
+    Column("id", UUID(as_uuid=True), primary_key=True),
+    Column("user_id", UUID(as_uuid=True), ForeignKey("users.id"), nullable=False),
+    Column("content_sha256", LargeBinary, nullable=False),
+    Column("file_kind", Text, nullable=False),
+    Column("size_bytes", Integer, nullable=False),
+    Column("object_key", Text, nullable=False, unique=True),
+    Column("status", Text, nullable=False),
+    Column("failure_code", Text),
+    Column("parse_requests", Integer, nullable=False),
+    Column("bank_code", Text),
+    Column("layout_code", Text),
+    Column("parser_version", Integer),
+    Column("period_from", Date),
+    Column("period_to", Date),
+    Column("rows_parsed", Integer),
+    Column("rows_rejected", Integer),
+    Column("reconciled", Boolean),
+    Column("reconcile_breaks", Integer),
+    Column("row_order", Text),
+    Column("created_at", DateTime(timezone=True), nullable=False),
+    Column("confirmed_at", DateTime(timezone=True)),
+    Column("parsed_at", DateTime(timezone=True)),
+    Column("raw_deleted_at", DateTime(timezone=True)),
+)
+
+transactions = Table(
+    "transactions",
+    metadata,
+    Column("id", BigInteger, primary_key=True, autoincrement=False, server_default=FetchedValue()),
+    Column("txn_date", Date, primary_key=True),
+    Column("user_id", UUID(as_uuid=True), ForeignKey("users.id"), nullable=False),
+    Column("statement_id", UUID(as_uuid=True), ForeignKey("statements.id"), nullable=False),
+    Column("row_index", Integer, nullable=False),
+    Column("value_date", Date),
+    Column("direction", Text, nullable=False),
+    Column("amount_paise", BigInteger, nullable=False),
+    Column("balance_paise", BigInteger),
+    Column("channel", Text),
+    Column("narration_enc", LargeBinary, nullable=False),
+    Column("ref_enc", LargeBinary),
+    Column("ref_hmac", LargeBinary),
+)
+
+jobs = Table(
+    "jobs",
+    metadata,
+    Column("id", BigInteger, Identity(always=True), primary_key=True),
+    Column("queue", Text, nullable=False),
+    Column("idempotency_key", Text, nullable=False, unique=True),
+    Column("user_id", UUID(as_uuid=True), ForeignKey("users.id")),
+    Column("payload", JSONB, nullable=False),
+    Column("state", Text, nullable=False),
+    Column("attempts", Integer, nullable=False),
+    Column("max_attempts", Integer, nullable=False),
+    Column("run_after", DateTime(timezone=True), nullable=False),
+    Column("locked_by", Text),
+    Column("locked_until", DateTime(timezone=True)),
+    Column("last_error_code", Text),
+    Column("created_at", DateTime(timezone=True), nullable=False),
+    Column("finished_at", DateTime(timezone=True)),
+)
+
+outbox = Table(
+    "outbox",
+    metadata,
+    Column("id", BigInteger, Identity(always=True), primary_key=True),
+    Column("event_type", Text, nullable=False),
+    Column("user_id", UUID(as_uuid=True), ForeignKey("users.id")),
+    Column("payload", JSONB, nullable=False),
+    Column("created_at", DateTime(timezone=True), nullable=False),
+    Column("published_at", DateTime(timezone=True)),
+)
+
+llm_usage = Table(
+    "llm_usage",
+    metadata,
+    Column("user_id", UUID(as_uuid=True), ForeignKey("users.id"), primary_key=True),
+    Column("day", Date, primary_key=True),
+    Column("calls", Integer, nullable=False),
 )

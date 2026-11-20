@@ -15,13 +15,14 @@ Trust boundaries: browser ↔ API; API/worker ↔ Postgres, Redis, object storag
 | **T**ampering | User edits another user's rows through an app bug | Postgres RLS with FORCE on every user table; app role has no BYPASSRLS, cannot `SET ROLE` or turn row security off; tests prove it (built M2) |
 | Tampering | Ciphertext swapped between users or fields | AES-GCM with associated data bound to user and field (built M2) |
 | Tampering | Audit log rewritten | App and worker roles have INSERT and SELECT only (built M2) |
-| Tampering | Malicious PDF | Upload guard in the worker: magic bytes, size and page limits, no JavaScript or embedded files, timeouts (M3) |
+| Tampering | Malicious PDF or spreadsheet | Upload guard in the worker: magic bytes must match the declared type, size and page limits, no JavaScript, launch actions or embedded files, no macros, zip-bomb limits; parsing in a child process with a timeout (built M3) |
+| Tampering | Client lies about the file hash or swaps the upload | Worker recomputes SHA-256 from the stored object and fails the statement on mismatch (built M3) |
 | Tampering | Wrong amount in a letter | Template letters; guardrails check every amount and rule id (M7) |
 | **R**epudiation | "I never deleted my account" / "I never approved that letter" | Append-only audit log for signup, login, failures, resets, export, consent changes, deletion, letter approvals (M2, M7) |
 | **I**nformation disclosure | Cross-user read | RLS (built M2); ids are random UUIDs |
 | Information disclosure | Account enumeration | Same response for existing and new emails on signup, reset and resend; same login error. Known residual: the per-account lockout (429) reveals that an account exists after 5 failures |
 | Information disclosure | Secrets or statement text in logs | JSON logs with ids only; dependency errors log the error type only; Redis keys hashed; test that a failing probe does not log its message (built M2); redaction scanner on logs (M3) |
-| Information disclosure | Statement text sent to an AI provider | Only `llm_gateway` may call models; hosted route only for redacted text, re-scanned before sending (M3, M7) |
+| Information disclosure | Statement text sent to an AI provider | Only `llm_gateway` may call models; every prompt is redacted and re-scanned, and the layout fallback sends only a masked sketch (built M3); a test proves names, UPI IDs, phone, PAN, account and card numbers never reach the model |
 | Information disclosure | Database backup leak | Encrypted fields unreadable without the KEK; deleted users crypto-shredded |
 | Information disclosure | Real statements committed to git | `PRIVATE_FIXTURES_DIR` must be outside the repo (startup check and tests); `*.pdf`, `*.csv`, `*.xls*` ignored (built M1) |
 | **D**enial of service | Login or signup flooding | Per-IP token buckets; auth fails closed with 503 if Redis is down (built M2) |

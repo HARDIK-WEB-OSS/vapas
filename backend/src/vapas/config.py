@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     migration_database_url: SecretStr | None = None
     redis_url: SecretStr
     s3_endpoint_url: str | None = None
+    s3_public_endpoint_url: str | None = None
     s3_region: str = "auto"
     s3_access_key_id: SecretStr
     s3_secret_access_key: SecretStr
@@ -38,8 +39,15 @@ class Settings(BaseSettings):
     claim_lookback_months: int = Field(default=12, ge=1, le=120)
     private_fixtures_dir: Path | None = None
     worker_heartbeat_seconds: float = Field(default=30.0, gt=0)
+    worker_poll_seconds: float = Field(default=1.0, gt=0)
+    parse_timeout_seconds: float = Field(default=90.0, gt=0)
+    raw_file_max_age_minutes: int = Field(default=50, ge=1, le=59)
+    transaction_retention_months: int = Field(default=13, ge=12, le=120)
+    ollama_url: str | None = None
+    ollama_model: str = "qwen2.5:3b"
+    llm_daily_call_budget: int = Field(default=6, ge=0, le=100)
 
-    @field_validator("s3_endpoint_url", "migration_database_url", mode="before")
+    @field_validator("s3_endpoint_url", "s3_public_endpoint_url", "migration_database_url", "ollama_url", mode="before")
     @classmethod
     def blank_is_none(cls, value: object) -> object:
         return None if value == "" else value

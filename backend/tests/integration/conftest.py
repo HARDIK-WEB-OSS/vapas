@@ -1,9 +1,11 @@
 import asyncio
 import re
 from collections.abc import Iterator
+from pathlib import Path
 from typing import Any, cast
 
 import pytest
+from dotenv import dotenv_values
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pydantic import SecretStr
@@ -94,3 +96,28 @@ def bearer(token: str) -> dict[str, str]:
 def user_id_of(client: TestClient, token: str) -> str:
     user_id: str = client.get("/account/me", headers=bearer(token)).json()["id"]
     return user_id
+
+
+def _env_file() -> dict[str, str | None]:
+    root = Path(__file__).resolve().parents[3]
+    return dotenv_values(root / ".env")
+
+
+@pytest.fixture(scope="session")
+def worker_settings(live_settings: Settings) -> Settings:
+    env = _env_file()
+    app_url = live_settings.database_url.get_secret_value()
+    worker_url = app_url.replace(f"vapas_app:{env['APP_DB_PASSWORD']}@", f"vapas_worker:{env['WORKER_DB_PASSWORD']}@")
+    assert worker_url != app_url
+    return live_settings.model_copy(update={"database_url": SecretStr(worker_url)})
+
+
+def verified_user(client: TestClient, email: str) -> str:
+    signup(client, email)
+    assert client.post("/auth/verify-email", json={"token": last_token(client, "verify_email")}).status_code == 200
+    return login(client, email)
+
+
+def foreign_job_claims(settings: Settings, worker_id: str) -> list[str]:
+    rows = owner_sql(settings, "SELECT DISTINCT locked_by FROM jobs WHERE locked_by IS NOT NULL")
+    return [r.locked_by for r in rows if r.locked_by != worker_id]

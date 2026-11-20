@@ -131,7 +131,7 @@ Option 1, page-by-page extraction (worst case):
 - Output per statement: 15 x 1,800 = 27,000 tokens, which is 675 s (about 11 min) per statement on one stream. **This misses the 2-minute SLO.**
 - GPU time: 333 x 675 s = 62 GPU-hours/day average.
 
-Option 2, layout mapping first (recommended for M3):
+Option 2, layout mapping first (built in M3; page-by-page extraction for pages that fail reconciliation is not built yet and is added only if real statements show it is needed):
 - One call reads the first page and returns a column mapping (which column is date, narration, debit, credit, balance; the date format; and the header rows to skip): about 1,500 input and 200 output tokens. pdfplumber then extracts every page deterministically using that mapping. Only pages that fail balance reconciliation go to page-by-page extraction (assume 10% of pages, so 1.5 pages per statement).
 - About 2.5 calls per statement: **about 830 calls/day** average, **about 8,300** on a peak day.
 - Output per statement: 200 + 1.5 x 1,800 = 2,900 tokens, which is about 73 s. This fits inside 2 minutes on most statements.
@@ -145,6 +145,7 @@ Hosted model (letter wording polish only, redacted input):
 ### 2.7 Workers
 
 - CPU per statement on the deterministic path [A: M3]: pdfplumber about 0.4 s/page x 15 = 6 s, plus classify, detect and DB writes about 2 s, so **about 8 s**.
+- Measured in M3 (`docs/parser_eval.md`): 0.10 s per page for synthetic text PDFs on the development laptop, a quarter of the assumption above. Real bank PDFs may be slower (more words, rulings, fonts); the private-statement evaluation re-measures this (PENDING REAL DATA). The 8 s estimate is kept until then.
 - Average load: 0.077/s x 8 s = 0.62 busy processes. **1 to 2 worker processes.**
 - Peak load: 0.77/s x 8 s = 6.2 busy processes. At a 70% utilisation target: 6.2 / 0.7 = 8.9, so **10 worker processes** (for example 3 machines with 4 vCPU each) at month start.
 - Little's law check at peak: statements in flight = arrival rate x time in system = 0.77 x about 10 s = about 8. Queue wait stays in seconds while utilisation is under about 80%, well inside the 2-minute SLO.
@@ -293,7 +294,7 @@ Conventions: ids are UUIDs except high-volume tables (bigint). Money is integer 
 ### 5.3 Transactions partitioning (built now)
 
 - `PARTITION BY RANGE (txn_date)`, one partition per calendar month. Primary and unique keys include `txn_date`, as Postgres requires.
-- A maintenance job creates partitions 3 months ahead and back to the oldest month allowed by retention. A `DEFAULT` partition catches anything outside; any row landing there raises an alert.
+- The worker creates the partition for each month a statement touches, inside the same transaction that inserts the rows, through the `ensure_transaction_partition(month)` function (owner rights, advisory lock, idempotent). There is deliberately **no DEFAULT partition**: a row in a DEFAULT partition blocks creating the matching monthly partition later, so a missing partition must fail loudly instead (changed in M3).
 - Queries filter on `user_id` and a `txn_date` range, so partition pruning applies (matching only looks at debit date + 30 days).
 - Retention is a `DROP` of an old partition (instant, no vacuum storm), not a large `DELETE`. See section 11, item 4.
 - Findings reference transactions by `(id, txn_date)` and also store an encrypted, masked snapshot (`snapshot_enc`), so a finding and its case evidence survive after the transaction partition is dropped.
@@ -349,6 +350,8 @@ If Redis is down: auth routes fail closed (HTTP 503 with a retry message); the g
 | Local model down | Circuit breaker, health ping | Unknown-layout statements cannot be parsed | Statement goes to `needs_review` with "we cannot read this layout yet"; job retries on a slow schedule; known layouts are unaffected |
 | Email provider down | Send errors, circuit breaker | Reminders delayed; deadline-critical | Retries with backoff for up to 24 h; an in-app banner is shown immediately for every due reminder regardless of email; a reminder still unsent 24 h after its due date raises an alert; the d1 reminder is due early enough that the user can still file |
 | Poison statement (crashes or times out the parser) | attempts reaches max_attempts (3) | One statement fails | Job goes to `dead`; statement status `failed` with a re-upload suggestion; raw file deleted on schedule; dead-letter count alert; synthetic regression test added once the cause is known |
+| Parser hangs (pathological PDF) | Parse runs in a child process with a timeout (90 s) | One statement delayed | Child process is killed; job retried with backoff; after 3 attempts it goes to `dead` and the statement to `failed` |
+| Queue backlog older than the raw-file limit | Sweeper deletes raw files older than 50 minutes regardless of state | Statement cannot be parsed | Parse finds the file missing and marks the statement `failed` (`file_missing`); the user re-uploads. Deletion within 1 hour wins over completing a delayed parse |
 | Worker crash after reading the PDF password | Retried job finds no `pdfpw:{statement_id}` key | One password-protected statement waits for the user | Statement status `needs_password`; in-app notification asks the user to enter the password again; the job resumes from parse |
 | Duplicate upload | unique(user_id, content_sha256) | None | Presign returns the existing statement; no second parse |
 | Worker crash mid-statement | Lease (`locked_until`) expires | Statement delayed by up to the lease (5 min) | Another worker reclaims; stage transaction was not committed, so the redo is clean (section 4) |
@@ -359,7 +362,7 @@ If Redis is down: auth routes fail closed (HTTP 503 with a retry message); the g
 
 - **RLS**: section 5.1. Every user-owned table has `FORCE ROW LEVEL SECURITY` with the owner policy. CI runs isolation tests that log in as user A and try to read user B's rows through every table with raw SQL through the app role (M2).
 - **Envelope encryption** (implemented in `security/crypto.py`, details and rotation plan in `docs/privacy.md`): each user has a random 256-bit data key (DEK). It is stored only wrapped (AES-GCM) by a master key (KEK) from the environment, with `kek_version` for rotation. Encrypted fields: narration, reference numbers, finding snapshots, letter bodies, account numbers. Masked last 4 digits are stored in plain text where the UI needs them. Equality lookups on reference numbers use a per-user keyed HMAC (`ref_hmac`), so matching by UTR works without decrypting. Deleting a user's DEK makes any copy left in backups unreadable (crypto-shredding), which supports the right to erase. KEK rotation re-wraps DEKs only; data is not re-encrypted.
-- **Redaction boundary**: `llm_gateway` is the only path to any model. For the hosted route it redacts account numbers, card numbers, names, phone numbers, emails, PAN, UPI IDs and IFSC-plus-account patterns, then runs a second scanner on the output of redaction and blocks the call if anything matching those patterns remains. The local route accepts unredacted statement text because it never leaves the machine. Prompts and responses are not logged; only token counts and latency.
+- **Redaction boundary**: `llm_gateway` is the only path to any model. Every prompt (both routes, from M3) is redacted (account and card numbers, phone numbers, emails, PAN, UPI IDs, IFSC codes, long digit runs, masked account numbers) and then scanned again; the call is blocked if anything matching those patterns remains. For the layout-mapping fallback the prompt is a *sketch*: only the line directly above the first dated row (the column header) plus up to 8 dated rows with every letter replaced by `x` (month names and Cr/Dr kept). Residual risk: a header line that itself contains a name would be sent after regex redaction; header lines are column labels in every layout seen so far.
 - **Presigned URLs**: upload URLs expire in 5 minutes, are bound to a content length range and to the key `raw/{user_id}/{statement_id}`; there are no download URLs for raw files (only the worker reads them). The bucket is private, without public access or listing.
 - **Upload guard**: runs in the worker: size limit, PDF magic bytes, page limit, rejects JavaScript, embedded files and launch actions, timeouts per page.
 - **Secrets**: only from the environment via pydantic-settings; `.env` is gitignored; hosts hold production secrets. No secret ever reaches logs or Sentry (Sentry before-send scrubber).

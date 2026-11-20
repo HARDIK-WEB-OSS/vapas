@@ -6,11 +6,14 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from vapas.auth.deps import ClientIpDep, CurrentUserDep, ServicesDep
+from vapas.auth.deps import ClientIpDep, CurrentUser, CurrentUserDep, ServicesDep
 from vapas.auth.passwords import MAX_PASSWORD_LENGTH, verify_password
 from vapas.auth.routes import REFRESH_COOKIE, REFRESH_COOKIE_PATH
 from vapas.auth.service import CORE_PURPOSE
 from vapas.db import repo
+from vapas.db import statements as store
+from vapas.security.user_keys import NARRATION, REF_NO, user_cipher
+from vapas.services import Services
 from vapas.storage.object_store import delete_user_objects
 
 EXPORT_FORMAT_VERSION = 1
@@ -71,10 +74,48 @@ async def export(user: CurrentUserDep, services: ServicesDep, ip: ClientIpDep) -
         "format_version": EXPORT_FORMAT_VERSION,
         "exported_at": datetime.now(UTC),
         **await repo.export_user_data(user.conn, user.user_id),
+        **await _statement_data(user, services),
     }
     await repo.write_audit(user.conn, user.user_id, "data_exported", services.auth.ip_hash(ip))
     headers = {"Content-Disposition": 'attachment; filename="vapas-export.json"', "Cache-Control": "no-store"}
     return JSONResponse(jsonable_encoder(data), headers=headers)
+
+
+async def _statement_data(user: CurrentUser, services: Services) -> dict[str, list[dict[str, Any]]]:
+    rows = await store.list_for_user(user.conn, user.user_id, limit=10_000)
+    statements_out = [
+        {
+            "id": r.id,
+            "status": r.status,
+            "file_kind": r.file_kind,
+            "bank_code": r.bank_code,
+            "period_from": r.period_from,
+            "period_to": r.period_to,
+            "rows_parsed": r.rows_parsed,
+            "reconciled": r.reconciled,
+            "created_at": r.created_at,
+        }
+        for r in rows
+    ]
+    stored = await store.transactions_for_user(user.conn, user.user_id)
+    if not stored:
+        return {"statements": statements_out, "transactions": []}
+    cipher = await user_cipher(user.conn, services.settings.key_ring(), user.user_id)
+    transactions_out = [
+        {
+            "statement_id": t.statement_id,
+            "row_index": t.row_index,
+            "txn_date": t.txn_date,
+            "value_date": t.value_date,
+            "direction": t.direction,
+            "amount_paise": t.amount_paise,
+            "balance_paise": t.balance_paise,
+            "narration": cipher.decrypt(bytes(t.narration_enc), NARRATION),
+            "ref_no": cipher.decrypt(bytes(t.ref_enc), REF_NO) if t.ref_enc else None,
+        }
+        for t in stored
+    ]
+    return {"statements": statements_out, "transactions": transactions_out}
 
 
 @router.post("/account/consent/withdraw")

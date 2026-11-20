@@ -43,7 +43,10 @@ jobs:
         working-directory: .
         run: cp .env.example .env && docker compose up -d --build --wait
       - name: Integration tests
-        run: uv run pytest -m integration
+        run: |
+          docker compose stop worker
+          uv run pytest -m integration
+          docker compose start worker
       - name: API ready through compose
         run: curl --fail --silent --show-error http://127.0.0.1:8000/ready
       - name: Stack logs

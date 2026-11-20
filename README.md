@@ -25,7 +25,9 @@ uv run ruff check
 uv run ruff format --check
 uv run mypy
 uv run pytest
+docker compose stop worker
 uv run pytest -m integration
+docker compose start worker
 cd ..
 uv run --project backend python rules/schema.py
 ```

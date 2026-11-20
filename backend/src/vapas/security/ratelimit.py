@@ -47,6 +47,7 @@ SIGNUP_PER_IP = Limit("signup_ip", 20, 600)
 EMAIL_PER_ACCOUNT = Limit("email_account", 3, 3600)
 EMAIL_PER_IP = Limit("email_ip", 20, 600)
 REFRESH_PER_IP = Limit("refresh_ip", 60, 60)
+UPLOADS_PER_USER = Limit("upload_user", 15, 86400)
 
 
 @dataclass(frozen=True)

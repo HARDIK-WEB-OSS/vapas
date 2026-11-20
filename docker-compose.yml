@@ -105,6 +105,12 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     pull_policy: build
+    environment:
+      DATABASE_URL: postgresql+asyncpg://vapas_app:${APP_DB_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379/0
+      S3_ENDPOINT_URL: http://objectstore:8333
+      S3_PUBLIC_ENDPOINT_URL: http://127.0.0.1:8333
+      PRIVATE_FIXTURES_DIR: ""
     ports:
       - "127.0.0.1:8000:8000"
     healthcheck:
