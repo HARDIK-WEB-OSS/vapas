@@ -6,10 +6,11 @@ from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from vapas.db.models import outbox
-from vapas.db.statements import STATEMENT_UPLOADED
+from vapas.db.statements import DETECT_REQUESTED, STATEMENT_UPLOADED
 from vapas.jobs.queue import enqueue
 
 PARSE_QUEUE = "parse"
+DETECT_QUEUE = "detect"
 RELAY_BATCH = 50
 
 Route = Callable[[UUID | None, dict[str, Any]], tuple[str, str]]
@@ -19,7 +20,11 @@ def _parse_route(user_id: UUID | None, payload: dict[str, Any]) -> tuple[str, st
     return PARSE_QUEUE, f"parse:{user_id}:{payload['sha256']}:{payload['parse_request']}"
 
 
-ROUTES: dict[str, Route] = {STATEMENT_UPLOADED: _parse_route}
+def _detect_route(user_id: UUID | None, payload: dict[str, Any]) -> tuple[str, str]:
+    return DETECT_QUEUE, f"detect:{user_id}:{payload['request_id']}"
+
+
+ROUTES: dict[str, Route] = {STATEMENT_UPLOADED: _parse_route, DETECT_REQUESTED: _detect_route}
 
 
 async def relay(conn: AsyncConnection, batch: int = RELAY_BATCH) -> int:

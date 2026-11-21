@@ -18,6 +18,7 @@ NEEDS_PASSWORD = "needs_password"
 NEEDS_REVIEW = "needs_review"
 FAILED = "failed"
 STATEMENT_UPLOADED = "statement_uploaded"
+DETECT_REQUESTED = "detect_requested"
 INSERT_OUTBOX = text(
     "INSERT INTO outbox (event_type, user_id, payload) VALUES (:event, :user_id, CAST(:payload AS jsonb))"
 )
@@ -122,10 +123,12 @@ async def queue_for_parsing(conn: AsyncConnection, row: StatementRow) -> int:
     )
     request = int((await conn.execute(statement)).scalar_one())
     payload = {"statement_id": str(row.id), "sha256": row.content_sha256.hex(), "parse_request": request}
-    await conn.execute(
-        INSERT_OUTBOX, {"event": STATEMENT_UPLOADED, "user_id": row.user_id, "payload": json.dumps(payload)}
-    )
+    await insert_event(conn, STATEMENT_UPLOADED, row.user_id, payload)
     return request
+
+
+async def insert_event(conn: AsyncConnection, event: str, user_id: UUID, payload: dict[str, Any]) -> None:
+    await conn.execute(INSERT_OUTBOX, {"event": event, "user_id": user_id, "payload": json.dumps(payload)})
 
 
 async def set_status(conn: AsyncConnection, statement_id: UUID, status: str, failure_code: str | None = None) -> None:
@@ -161,10 +164,10 @@ async def transactions_for_statement(conn: AsyncConnection, statement_id: UUID) 
     return list(await conn.execute(statement))
 
 
-async def transactions_for_user(conn: AsyncConnection, user_id: UUID) -> list[Any]:
-    statement = (
-        select(transactions)
-        .where(transactions.c.user_id == user_id)
-        .order_by(transactions.c.statement_id, transactions.c.row_index)
-    )
+async def transactions_for_user(conn: AsyncConnection, user_id: UUID, reconciled_only: bool = False) -> list[Any]:
+    statement = select(transactions).where(transactions.c.user_id == user_id)
+    if reconciled_only:
+        trusted = select(statements.c.id).where(statements.c.user_id == user_id, statements.c.reconciled.is_(True))
+        statement = statement.where(transactions.c.statement_id.in_(trusted))
+    statement = statement.order_by(transactions.c.statement_id, transactions.c.row_index)
     return list(await conn.execute(statement))

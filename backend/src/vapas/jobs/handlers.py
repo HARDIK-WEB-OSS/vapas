@@ -4,7 +4,7 @@ import logging
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from vapas.classify.channel_rules import CLASSIFIER_VERSION, classify
 from vapas.db import statements as store
@@ -23,6 +23,7 @@ from vapas.ingest.reconcile import reconcile
 from vapas.ingest.sandbox import ParseTimeoutError, parse_isolated
 from vapas.jobs import queue
 from vapas.jobs.context import WorkerContext
+from vapas.jobs.detection import detect_gave_up, handle_detect
 from vapas.llm_gateway.gateway import BudgetExceededError, LlmUnavailableError, SensitiveDataBlockedError
 from vapas.security.crypto import FieldCipher
 from vapas.security.upload_guard import UploadRejectedError, check_upload
@@ -161,6 +162,12 @@ async def handle_parse(ctx: WorkerContext, job: queue.Job) -> None:
                 conn, statement_id, [_encrypted_row(cipher, user_id, statement_id, r) for r in rows]
             )
             await store.record_parse(conn, statement_id, _parse_result(outcome.parsed))
+            await store.insert_event(
+                conn,
+                store.DETECT_REQUESTED,
+                user_id,
+                {"request_id": str(uuid4()), "reason": "statement_parsed", "statement_id": str(statement_id)},
+            )
         else:
             await store.set_status(conn, statement_id, outcome.status, outcome.code)
         await queue.complete(conn, job.id)
@@ -180,4 +187,7 @@ async def parse_gave_up(ctx: WorkerContext, job: queue.Job) -> None:
 
 
 Handler = Callable[[WorkerContext, queue.Job], Awaitable[None]]
-HANDLERS: dict[str, tuple[Handler, Handler]] = {"parse": (handle_parse, parse_gave_up)}
+HANDLERS: dict[str, tuple[Handler, Handler]] = {
+    "parse": (handle_parse, parse_gave_up),
+    "detect": (handle_detect, detect_gave_up),
+}

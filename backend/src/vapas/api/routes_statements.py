@@ -25,6 +25,29 @@ CONTENT_TYPES = {
     FileKind.XLSX: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 }
 
+ANALYSIS_NOTES = {
+    "balance_mismatch": (
+        "The running balance in this statement did not add up row by row, so some rows may have been read wrongly. "
+        "To avoid false claims, VAPAS did not use this statement to look for compensation. Try downloading it again "
+        "or uploading a different format (PDF, CSV or Excel)."
+    ),
+    "no_transactions": "No transactions could be read from this statement, so it was not analysed.",
+    "unknown_layout": "VAPAS cannot read this bank's statement layout yet, so it was not analysed.",
+    "llm_layout_unreconciled": (
+        "VAPAS tried to read this layout but the balances did not add up, so it was not analysed."
+    ),
+    "llm_layout_rejected": "VAPAS cannot read this bank's statement layout yet, so it was not analysed.",
+    "llm_unavailable": "VAPAS cannot read this bank's statement layout right now. Please try again later.",
+    "llm_budget_exceeded": (
+        "VAPAS has reached today's limit for unfamiliar statement layouts. Please try again tomorrow."
+    ),
+    "needs_password": "This statement is password protected. Enter its password to continue.",
+    "wrong_password": "The password was not correct. Enter it again to continue.",
+    "file_missing": "The uploaded file was no longer available. Please upload it again.",
+    "hash_mismatch": "The uploaded file did not match what your browser sent. Please upload it again.",
+    "processing_failed": "This statement could not be processed. Please upload it again.",
+}
+
 router = APIRouter(prefix="/statements", tags=["statements"])
 
 
@@ -58,6 +81,7 @@ class StatementOut(BaseModel):
     period_from: date | None
     period_to: date | None
     created_at: datetime
+    analysis_note: str | None
 
 
 def _out(row: store.StatementRow) -> StatementOut:
@@ -72,6 +96,7 @@ def _out(row: store.StatementRow) -> StatementOut:
         period_from=row.period_from,
         period_to=row.period_to,
         created_at=row.created_at,
+        analysis_note=ANALYSIS_NOTES.get(row.failure_code or "") if row.status != store.PARSED else None,
     )
 
 

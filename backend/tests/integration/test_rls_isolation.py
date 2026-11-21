@@ -23,6 +23,8 @@ USER_TABLES = {
     "audit_log": "user_id",
     "statements": "user_id",
     "transactions": "user_id",
+    "findings": "user_id",
+    "user_inputs": "user_id",
 }
 QUEUE_TABLES = {"jobs", "outbox"}
 T = TypeVar("T")

@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     refresh_token_days: int = Field(default=30, ge=1, le=90)
     claim_lookback_months: int = Field(default=12, ge=1, le=120)
     private_fixtures_dir: Path | None = None
+    rules_dir: Path | None = None
     worker_heartbeat_seconds: float = Field(default=30.0, gt=0)
     worker_poll_seconds: float = Field(default=1.0, gt=0)
     parse_timeout_seconds: float = Field(default=90.0, gt=0)

@@ -34,3 +34,25 @@ These are VAPAS product rules, not legal rules and not legal advice. They sit on
 - Record the sha256 of the downloaded file in the YAML (`sha256`), e.g. `(Get-FileHash .\file.pdf).Hash.ToLower()`.
 - `scripts/ingest_rbi.py` (M6) reads only manually downloaded files and refuses any file whose hash differs from the one in the YAML.
 - Source PDFs are not committed (`*.pdf` is in `.gitignore`); the URL plus hash is the record.
+
+## P7. UPI and AePS: merchant payment or transfer to a person (accepted 21 Nov 2026)
+- Rows 4(b) and 5(a) (payment to a merchant) are claim rows; rows 4(a) and 5(b) (transfer to a person, credit-push) are not (P5).
+- **Amended 21 Nov 2026:** VAPAS first classifies from the statement description, using structural signals only (never merchant names): a `P2M` marker, merchant QR VPA patterns (PhonePe `Q...@ybl`, `paytmqr...@paytm`, `bharatpe...`), a POS/ECOM code inside a UPI line, AePS "Aadhaar Pay" or "purchase" for merchants; a `P2P`/`P2A` marker or AePS "fund transfer"/`FT` for persons (`backend/src/vapas/classify/payee.py`). These patterns are not yet verified on real statements (PENDING REAL DATA).
+- Only when there is no clear signal, or signals conflict, does VAPAS ask the user: "Was this a payment to a shop or business?". The user's answer always overrides the statement signal.
+- Until classified, the finding is **needs user input** and shows no amount. Merchant makes it a claim under 4(b) / 5(a); person makes it informational under 4(a) / 5(b) (compensation goes to the receiver, Annex General Instruction 1(a)).
+- Each finding records how the merchant classification was made (`merchant_source`: `customer` or `statement:<signal>`). The number of questions each statement generates is tracked in `analytics_events` (`statement_analysed`, no personal data) to see how often users must be asked.
+- Every complaint letter for a UPI or AePS claim must state how the merchant classification was made: "confirmed by the customer" when the user answered, or "classified from the statement description" when a statement signal decided it. M7 letter guardrails must require the matching sentence.
+- **Interpretation (recorded as such):** an AePS cash withdrawal at a business correspondent is classified under Annex row **1(a)**, because the annex wording for that row covers "ATMs including Micro-ATMs" with "cash not dispensed". It is detected from the AePS narration (CASH WITHDRAWAL, CASH WDL, CW) and needs no question. T + 5 days and Rs 100 per day apply either way, so the amount does not depend on this choice; only the cited row does.
+
+## P8. Uncertain matches never become claims (accepted 21 Nov 2026)
+- If a reversal carries no reference number shared with the debit and more than one debit could belong to it (same amount, channel and counterparty), the finding is **needs review** with no amount.
+- Only transactions from statements whose running balance reconciled are used for detection. A statement that did not reconcile shows the user a plain-language reason (`analysis_note` on the statement) explaining that it was not analysed and what to try instead.
+- Transactions with an international marker (INTL, FOREIGN, a foreign currency code) are skipped (Annex General Instruction 7: domestic only).
+
+## P9. Debits that look failed but were never reversed (accepted 21 Nov 2026)
+- Only debits whose description contains a failure word are flagged. The list is kept **per bank** (`FAILURE_WORDS` in `detect/unreversed.py`); every bank currently uses the default list (FAILED, FAIL, DECLINED, TIMEOUT, TIMED OUT, NOT DISPENSED, PENDING), and no list is verified against real statements yet (PENDING REAL DATA). Ordinary debits are never flagged.
+- The user is asked "Did the payment fail?". Only after "yes", and only on a claim row, the finding becomes a claim whose compensation keeps growing (accruing) until the reversal arrives.
+
+## P10. NACH mandates (accepted 21 Nov 2026, implements P1)
+- NACH debits are grouped by counterparty. One question per group: "Did you cancel this mandate before any of these debits?"
+- After the user enters the cancellation date and confirms proof, each debit after that date becomes a claim under 7(b): T = debit date, deadline T + 1, compensation accrues until a matching reversal arrives.

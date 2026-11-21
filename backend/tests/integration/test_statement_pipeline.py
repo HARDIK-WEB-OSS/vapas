@@ -1,7 +1,6 @@
 import asyncio
 import hashlib
 import json
-from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID
@@ -15,67 +14,15 @@ from vapas.config import Settings
 from vapas.ingest.model import FileKind
 from vapas.jobs.context import WorkerContext
 from vapas.jobs.maintenance import sweep_raw_files
-from vapas.jobs.worker import run_once
 from vapas.llm_gateway.gateway import LlmGateway
 from vapas.security.crypto import FieldCipher, WrappedKey
 from vapas.security.user_keys import NARRATION, take_pdf_password, user_cipher
 from vapas.storage.object_store import create_s3_client
 from vapas.synthetic.generator import expected_rows, generate, render_csv, render_pdf
 
-from .conftest import bearer, foreign_job_claims, login, owner_sql, signup, verified_user
+from .conftest import FakeModel, bearer, confirm, drain, login, owner_sql, signup, upload, verified_user
 
 pytestmark = pytest.mark.integration
-
-
-class FakeModel:
-    name = "fake"
-
-    def __init__(self, answer: str) -> None:
-        self.answer = answer
-        self.prompts: list[str] = []
-
-    async def complete_json(self, prompt: str) -> str:
-        self.prompts.append(prompt)
-        return self.answer
-
-
-@pytest.fixture
-def worker(worker_settings: Settings, live_settings: Settings) -> Iterator[WorkerContext]:
-    ctx = WorkerContext.from_settings(worker_settings, gateway=LlmGateway(None, daily_limit=6))
-    yield ctx
-    asyncio.run(ctx.close())
-    assert foreign_job_claims(live_settings, ctx.worker_id) == [], "stop the compose worker: docker compose stop worker"
-
-
-def drain(template: WorkerContext, limit: int = 20) -> int:
-    async def run() -> int:
-        ctx = WorkerContext.from_settings(template.settings, gateway=template.gateway)
-        rounds = 0
-        try:
-            while rounds < limit and await run_once(ctx):
-                rounds += 1
-        finally:
-            await ctx.close()
-        return rounds
-
-    return asyncio.run(run())
-
-
-def upload(client: TestClient, token: str, data: bytes, kind: FileKind, put: bool = True) -> dict[str, Any]:
-    body = {"sha256": hashlib.sha256(data).hexdigest(), "size_bytes": len(data), "file_kind": kind.value}
-    response = client.post("/statements/presign", headers=bearer(token), json=body)
-    assert response.status_code == 200, response.text
-    out: dict[str, Any] = response.json()
-    if put and out["upload_url"]:
-        put_response = httpx.put(out["upload_url"], content=data, headers={"Content-Type": out["content_type"]})
-        assert put_response.status_code == 200, put_response.text
-    return out
-
-
-def confirm(client: TestClient, token: str, statement_id: str, password: str | None = None) -> httpx.Response:
-    body = {"password": password} if password else {}
-    response: httpx.Response = client.post(f"/statements/{statement_id}/confirm", headers=bearer(token), json=body)
-    return response
 
 
 def statement(client: TestClient, token: str, statement_id: str) -> dict[str, Any]:
@@ -263,14 +210,14 @@ def test_crashed_worker_lease_expires_and_the_redo_is_identical(
     owner_sql(
         live_settings,
         "UPDATE jobs SET state = 'running', locked_by = 'dead-worker', "
-        "locked_until = now() - interval '1 minute', attempts = 1",
+        "locked_until = now() - interval '1 minute', attempts = 1 WHERE queue = 'parse'",
     )
     drain(worker)
     assert statement(client, token, sid)["status"] == "parsed"
     assert decrypted_narrations(live_settings, user_id, sid) == first
     count = owner_sql(live_settings, "SELECT count(*) AS n FROM transactions WHERE statement_id = :s", {"s": sid})
     assert count[0].n == 30
-    attempts = owner_sql(live_settings, "SELECT attempts, state FROM jobs")
+    attempts = owner_sql(live_settings, "SELECT attempts, state FROM jobs WHERE queue = 'parse'")
     assert [(r.attempts, r.state) for r in attempts] == [(2, "done")]
     owner_sql(live_settings, "UPDATE jobs SET locked_by = NULL")
 
