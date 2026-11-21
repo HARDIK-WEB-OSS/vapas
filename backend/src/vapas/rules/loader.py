@@ -55,6 +55,23 @@ class DayTypeOverride:
 
 
 @dataclass(frozen=True)
+class OmbudsmanRule:
+    id: str
+    instrument_id: str
+    instrument_ref: str
+    clause: str
+    kind: str
+    days: int | None
+    quote: str
+    effective_from: date
+    effective_to: date | None
+    verified: bool
+
+    def in_force_on(self, day: date) -> bool:
+        return self.effective_from <= day and (self.effective_to is None or day <= self.effective_to)
+
+
+@dataclass(frozen=True)
 class RuleBook:
     instrument_id: str
     instrument_ref: str
@@ -63,6 +80,13 @@ class RuleBook:
     rules_sha256: bytes
     legal_content: dict[str, Any]
     policy_content: dict[str, Any]
+    ombudsman_rules: tuple[OmbudsmanRule, ...] = ()
+
+    def ombudsman(self, kind: str, on: date) -> OmbudsmanRule | None:
+        return next(
+            (r for r in self.ombudsman_rules if r.kind == kind and r.verified and r.in_force_on(on)),
+            None,
+        )
 
     def rule(self, rule_id: str, on: date) -> TatRule | None:
         found = self.tat_rules.get(rule_id)
@@ -151,6 +175,29 @@ def load_rulebook(rules_dir: Path | None = None) -> RuleBook:
     )
     instrument = raw["instrument"]
     reference = instrument.get("dept_ref") or instrument["ref_no"]
+    ombudsman = tuple(
+        OmbudsmanRule(
+            id=r["id"],
+            instrument_id=content["instrument"]["id"],
+            instrument_ref=content["instrument"].get("ref_no") or content["instrument"]["id"],
+            clause=r["clause"],
+            kind=r["kind"],
+            days=r.get("days"),
+            quote=r["quote"],
+            effective_from=r["effective_from"],
+            effective_to=r.get("effective_to"),
+            verified=(r.get("review") or {}).get("status") == "verified",
+        )
+        for content in files.values()
+        for r in content.get("ombudsman_rules", [])
+    )
     return RuleBook(
-        instrument["id"], reference, rules, overrides, _digest(_without_source_locations(legal)), legal, policy
+        instrument["id"],
+        reference,
+        rules,
+        overrides,
+        _digest(_without_source_locations(legal)),
+        legal,
+        policy,
+        ombudsman,
     )

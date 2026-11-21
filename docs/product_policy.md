@@ -56,3 +56,12 @@ These are VAPAS product rules, not legal rules and not legal advice. They sit on
 ## P10. NACH mandates (accepted 21 Nov 2026, implements P1)
 - NACH debits are grouped by counterparty. One question per group: "Did you cancel this mandate before any of these debits?"
 - After the user enters the cancellation date and confirms proof, each debit after that date becomes a claim under 7(b): T = debit date, deadline T + 1, compensation accrues until a matching reversal arrives.
+
+## P11. Cases, letters and deadlines (M7, proposed, awaiting approval)
+- A case covers findings from one bank. Only `claim` and `worth_checking` findings can go into a case, and a finding can be in only one case.
+- Letters are built from fixed templates (English and Hindi) filled only with engine facts. The user types their name, the last 4 digits of their account and a contact at approval; these are stored only inside the encrypted letter.
+- Guardrails reject any letter whose amounts, clause citations, circular references or rule ids differ from the engine's facts, that lacks a required statement (merchant classification, NACH disclosure, the "not legal advice" notice), that mentions compensation in a reversal-only letter, or that copies RBI in a bank letter. A rejected wording polish falls back to the template.
+- The user must approve the bank letter before marking it sent, and the CMS complaint text before marking the case escalated. Before escalation the user answers the Clause 10(1)(h)-(k) questions; "yes" blocks escalation.
+- **Interpretation:** "within 90 days from" a date is counted as that date + 90 days, and that day is the last day to file.
+- **Interpretation:** a complaint the bank received before 1 Jul 2026 gets no computed deadline (RB-IOS 2021 and transition rules are not used in v1); the user is told the deadline needs a manual check.
+- The Hindi letter, reminder and consent texts are drafts and need a native-speaker review before the pilot.

@@ -17,7 +17,7 @@ Trust boundaries: browser ↔ API; API/worker ↔ Postgres, Redis, object storag
 | Tampering | Audit log rewritten | App and worker roles have INSERT and SELECT only (built M2) |
 | Tampering | Malicious PDF or spreadsheet | Upload guard in the worker: magic bytes must match the declared type, size and page limits, no JavaScript, launch actions or embedded files, no macros, zip-bomb limits; parsing in a child process with a timeout (built M3) |
 | Tampering | Client lies about the file hash or swaps the upload | Worker recomputes SHA-256 from the stored object and fails the statement on mismatch (built M3) |
-| Tampering | Wrong amount in a letter | Template letters; guardrails check every amount and rule id (M7) |
+| Tampering | Wrong amount or rule in a letter, or a model that invents facts | Template letters filled only with engine facts; guardrails check every amount, clause, circular reference and rule id plus required statements; a rejected polish falls back to the template; the user approves every letter (built M7) |
 | **R**epudiation | "I never deleted my account" / "I never approved that letter" | Append-only audit log for signup, login, failures, resets, export, consent changes, deletion, letter approvals (M2, M7) |
 | **I**nformation disclosure | Cross-user read | RLS (built M2); ids are random UUIDs |
 | Information disclosure | Account enumeration | Same response for existing and new emails on signup, reset and resend; same login error. Known residual: the per-account lockout (429) reveals that an account exists after 5 failures |

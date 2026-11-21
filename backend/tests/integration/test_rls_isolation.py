@@ -25,6 +25,12 @@ USER_TABLES = {
     "transactions": "user_id",
     "findings": "user_id",
     "user_inputs": "user_id",
+    "cases": "user_id",
+    "case_findings": "user_id",
+    "case_events": "user_id",
+    "letters": "user_id",
+    "reminders": "user_id",
+    "notifications": "user_id",
 }
 QUEUE_TABLES = {"jobs", "outbox"}
 T = TypeVar("T")

@@ -278,12 +278,12 @@ Conventions: ids are UUIDs except high-volume tables (bigint). Money is integer 
 | `findings` | id uuid, user_id, finding_key (sha256 of detector, rule, rules and policy hashes, debit and reversal keys), detector, level (claim, worth_checking, needs_user_input, needs_review, historical, informational), confidence, status, rule_id, rule_version_id, policy_version, detector_version, finding_policy, letter_scope, question, group_key, statement_id, debit_txn (id, date), t_date, r_date, delay_days, amount_owed_paise, already_paid_paise, accruing, why, snapshot_enc, superseded_at | unique(user_id, finding_key) (idempotent upsert); (user_id, level, created_at desc) where not superseded (dashboard). No foreign key to `transactions`, so dropping old partitions never blocks; the encrypted snapshot keeps the facts. Database checks: amounts only on claim or informational findings, never with letter_scope reversal_only | owner; app may update status only |
 | `user_inputs` | id, user_id, question (payee_was_merchant, payment_failed, mandate_revoked), subject (debit key or mandate group key), answer jsonb, entered_at | unique(user_id, question, subject); answers survive re-detection because they point at transactions or mandate groups, not at findings | owner |
 | `finding_feedback` | finding_id, user_id, verdict, at | PK(finding_id, user_id) | owner |
-| `cases` | id uuid, user_id, state, bank_code, bank_received_on, wait_days_applied, escalation_eligible_on, bank_last_communication_on, filing_deadline_on, deadline_rule_version_id, created_at | (user_id, created_at desc) (case list); (state, filing_deadline_on) (expiry scan via definer function) | owner |
-| `case_findings` | case_id, finding_id, user_id | PK(case_id, finding_id); unique(finding_id) (one finding in one case) | owner |
-| `case_events` | id bigint, case_id, user_id, seq, type, payload jsonb, at | unique(case_id, seq) (ordered timeline) | owner; INSERT and SELECT only, no UPDATE/DELETE grants (append-only) |
-| `letters` | id, case_id, user_id, kind (bank, cms), lang, template_version, body_enc, polished, guardrail_result, approved_at | (case_id) | owner |
-| `reminders` | id, case_id, user_id, kind (eligible, d30, d7, d1), due_on, sent_at, attempts, channel | unique(case_id, kind); (due_on) where sent_at is null (due scan via definer function) | owner |
-| `notifications` | id, user_id, kind, ref_id, created_at, read_at | (user_id, read_at) (in-app banner, unread count) | owner |
+| `cases` | id uuid, user_id, state (draft, sent_to_bank, awaiting_reply, resolved, escalation_eligible, escalated, closed, expired), bank_code, language, sent_on, bank_received_on, last_communication_on, unsatisfied_reply_on, escalated_on, wait_days, escalation_eligible_on, filing_deadline_on, deadline_rule_version_id, closed_reason, created_at, updated_at | (user_id, created_at desc) (case list); (escalation_eligible_on, filing_deadline_on) where state is open (daily tick via `users_with_case_work`) | owner |
+| `case_findings` | case_id, finding_id, user_id | PK(case_id, finding_id); unique(finding_id) (one finding in one case) | owner; worker SELECT |
+| `case_events` | id bigint, case_id, user_id, seq, type, payload jsonb, at | unique(case_id, seq) (ordered timeline) | owner; INSERT and SELECT only for app and worker (append-only, tested) |
+| `letters` | id, case_id, user_id, kind (bank, cms), language, template_version, body_enc (encrypted with the user's key; holds the name and contact the user typed at approval), polished, guardrail_note, approved_at | (case_id, created_at desc) | owner |
+| `reminders` | id, case_id, user_id, kind (eligible, d30, d7, d1), due_on, sent_at, attempts | unique(case_id, kind) (one of each, never re-sent); (due_on) where sent_at is null | owner; worker reads and updates |
+| `notifications` | id, user_id, case_id, kind, message, created_at, read_at | (user_id, created_at desc) where unread (in-app banner) | owner; app may update read_at only |
 | `jobs` | id bigint, queue, idempotency_key, user_id, payload jsonb (ids only), state, attempts, max_attempts, run_after, locked_by, locked_until, last_error_code, created_at | unique(idempotency_key); (queue, run_after) where state = 'queued' (claim next job); (locked_until) where state = 'running' (expired lease scan) | none; worker role only, app cannot read; payload never holds PII |
 | `outbox` | id bigint, event_type, aggregate_id, payload jsonb (ids only), created_at, published_at | (id) where published_at is null (relay) | none; app may INSERT only |
 | `llm_usage` | user_id, day, calls, tokens | PK(user_id, day) (daily budget check) | owner |
@@ -307,10 +307,12 @@ Conventions: ids are UUIDs except high-volume tables (bigint). Money is integer 
 
 ### 5.5 Case timeline and deadline
 
-- `case_events` is append-only and the source of truth. `cases` holds the current state and the derived dates for fast queries. Both are updated in the same transaction.
-- On `sent_to_bank`: `escalation_eligible_on = bank_received_on + max(30, escalation_wait_days of the rule)` (P3).
-- `filing_deadline_on = max(escalation_eligible_on, bank_last_communication_on) + 90 days` (`rbi.rbios26.deadline`). It is recomputed (with a new event) whenever the user enters or changes the bank's last communication date. `deadline_rule_version_id` records which rule version produced it.
-- A daily maintenance job moves cases past `filing_deadline_on` to `expired` and logs an event.
+- `case_events` is append-only and the source of truth for what happened; `cases` holds the current state and the derived dates. Both are written in one transaction (`cases/service.commit`).
+- The wait and the 90-day window come from the verified RB-IOS 2026 rules in the YAML (`rbi.rbios26.wait`, `rbi.rbios26.deadline`), never from constants. Wait = max(30, `escalation_wait_days` of the case's TAT rules).
+- Timeline end = date the bank received the complaint + wait. Eligible = the earlier of the timeline end and the date of an unsatisfactory reply (Clause 10(1)(f)). Filing deadline = the later of the timeline end and the bank's last communication, + 90 days (Clause 10(1)(g)); the deadline date itself is the last day to file.
+- If the bank received the complaint before 1 Jul 2026, no RB-IOS 2026 rule is in force, so no deadline is computed and the case shows `deadline_unknown` (pre-scheme transition rules are not used in v1).
+- Deadlines are recomputed from the stored dates and the current verified rules on every transition and stored with `deadline_rule_version_id`.
+- An hourly worker job (`jobs/case_work.py`) moves cases to `escalation_eligible` or `expired` and sends reminders (eligible, 30, 7 and 1 days before the deadline) by email and as an in-app notification; a failed email is retried on the next run, the banner is shown at once.
 
 ## 6. Caching and rate limiting
 

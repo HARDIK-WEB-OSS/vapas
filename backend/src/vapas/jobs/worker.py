@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from vapas.config import Settings, get_settings
 from vapas.health import Probe, run_probes
 from vapas.jobs import queue
+from vapas.jobs.case_work import process_case_work
 from vapas.jobs.context import WorkerContext
 from vapas.jobs.handlers import HANDLERS
 from vapas.jobs.maintenance import drop_expired_partitions, sweep_raw_files
@@ -18,6 +19,7 @@ from vapas.logging_setup import configure_logging
 log = logging.getLogger(__name__)
 SWEEP_EVERY_SECONDS = 300.0
 RETENTION_EVERY_SECONDS = 86_400.0
+CASE_WORK_EVERY_SECONDS = 3_600.0
 
 
 async def heartbeat_loop(probes: Mapping[str, Probe], interval_seconds: float, stop: asyncio.Event) -> int:
@@ -86,6 +88,7 @@ async def work_loop(ctx: WorkerContext, stop: asyncio.Event) -> None:
     periodic = [
         Periodic(SWEEP_EVERY_SECONDS, sweep_raw_files, "sweep_raw_files"),
         Periodic(RETENTION_EVERY_SECONDS, drop_expired_partitions, "drop_expired_partitions"),
+        Periodic(CASE_WORK_EVERY_SECONDS, process_case_work, "case_work"),
     ]
     while not stop.is_set():
         did_work = False

@@ -1303,6 +1303,7 @@ dependencies = [
     { name = "cryptography" },
     { name = "email-validator" },
     { name = "fastapi" },
+    { name = "fpdf2" },
     { name = "httpx" },
     { name = "openpyxl" },
     { name = "pdfplumber" },
@@ -1322,7 +1323,6 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "boto3-stubs", extra = ["s3"] },
-    { name = "fpdf2" },
     { name = "httpx" },
     { name = "hypothesis" },
     { name = "mypy" },
@@ -1343,6 +1343,7 @@ requires-dist = [
     { name = "cryptography", specifier = ">=44" },
     { name = "email-validator", specifier = ">=2.2" },
     { name = "fastapi", specifier = ">=0.115" },
+    { name = "fpdf2", specifier = ">=2.8" },
     { name = "httpx", specifier = ">=0.28" },
     { name = "openpyxl", specifier = ">=3.1" },
     { name = "pdfplumber", specifier = ">=0.11" },
@@ -1362,7 +1363,6 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "boto3-stubs", extras = ["s3"], specifier = ">=1.35" },
-    { name = "fpdf2", specifier = ">=2.8" },
     { name = "httpx", specifier = ">=0.28" },
     { name = "hypothesis", specifier = ">=6.118" },
     { name = "mypy", specifier = ">=1.13" },

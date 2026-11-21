@@ -7,6 +7,7 @@ from vapas.auth.service import AuthService
 from vapas.config import Settings
 from vapas.db.session import Database
 from vapas.health import Dependencies
+from vapas.llm_gateway.gateway import LlmGateway, OllamaProvider
 from vapas.mail.sender import EmailSender, create_email_sender
 from vapas.security.ratelimit import RateLimiter
 from vapas.storage.object_store import create_presign_client
@@ -24,6 +25,7 @@ class Services:
     mailer: EmailSender
     auth: AuthService
     presign_client: S3Client
+    gateway: LlmGateway
 
     @classmethod
     def from_settings(cls, settings: Settings) -> Services:
@@ -32,7 +34,9 @@ class Services:
         limiter = RateLimiter(dependencies.redis)
         mailer = create_email_sender(settings)
         auth = AuthService(settings, db, settings.key_ring(), limiter, mailer)
-        return cls(settings, dependencies, db, limiter, mailer, auth, create_presign_client(settings))
+        provider = OllamaProvider(settings.ollama_url, settings.ollama_model) if settings.ollama_url else None
+        gateway = LlmGateway(provider, settings.llm_daily_call_budget)
+        return cls(settings, dependencies, db, limiter, mailer, auth, create_presign_client(settings), gateway)
 
     async def close(self) -> None:
         await self.dependencies.close()

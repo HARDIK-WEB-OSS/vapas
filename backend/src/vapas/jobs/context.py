@@ -8,6 +8,7 @@ from vapas.config import Settings
 from vapas.db.session import Database
 from vapas.health import Dependencies
 from vapas.llm_gateway.gateway import LlmGateway, OllamaProvider
+from vapas.mail.sender import EmailSender, create_email_sender
 from vapas.security.crypto import KeyRing
 
 
@@ -19,6 +20,7 @@ class WorkerContext:
     keys: KeyRing
     gateway: LlmGateway
     worker_id: str
+    mailer: EmailSender
 
     @classmethod
     def from_settings(cls, settings: Settings, gateway: LlmGateway | None = None) -> WorkerContext:
@@ -33,6 +35,7 @@ class WorkerContext:
             keys=settings.key_ring(),
             gateway=gateway,
             worker_id=f"{socket.gethostname()}:{os.getpid()}",
+            mailer=create_email_sender(settings),
         )
 
     async def close(self) -> None:

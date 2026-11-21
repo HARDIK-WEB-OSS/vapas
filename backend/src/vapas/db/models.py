@@ -242,3 +242,41 @@ user_inputs = Table(
     Column("answer", JSONB, nullable=False),
     Column("entered_at", DateTime(timezone=True), nullable=False),
 )
+
+cases = Table(
+    "cases",
+    metadata,
+    Column("id", UUID(as_uuid=True), primary_key=True),
+    Column("user_id", UUID(as_uuid=True), ForeignKey("users.id"), nullable=False),
+    Column("state", Text, nullable=False),
+    Column("bank_code", Text, nullable=False),
+    Column("language", Text, nullable=False),
+    Column("sent_on", Date),
+    Column("bank_received_on", Date),
+    Column("last_communication_on", Date),
+    Column("unsatisfied_reply_on", Date),
+    Column("escalated_on", Date),
+    Column("wait_days", Integer),
+    Column("escalation_eligible_on", Date),
+    Column("filing_deadline_on", Date),
+    Column("deadline_rule_version_id", BigInteger, ForeignKey("rule_versions.id")),
+    Column("closed_reason", Text),
+    Column("created_at", DateTime(timezone=True), nullable=False),
+    Column("updated_at", DateTime(timezone=True), nullable=False),
+)
+
+letters = Table(
+    "letters",
+    metadata,
+    Column("id", UUID(as_uuid=True), primary_key=True),
+    Column("case_id", UUID(as_uuid=True), ForeignKey("cases.id"), nullable=False),
+    Column("user_id", UUID(as_uuid=True), ForeignKey("users.id"), nullable=False),
+    Column("kind", Text, nullable=False),
+    Column("language", Text, nullable=False),
+    Column("template_version", Integer, nullable=False),
+    Column("body_enc", LargeBinary, nullable=False),
+    Column("polished", Boolean, nullable=False),
+    Column("guardrail_note", Text, nullable=False),
+    Column("approved_at", DateTime(timezone=True)),
+    Column("created_at", DateTime(timezone=True), nullable=False),
+)
