@@ -14,6 +14,7 @@ instrument:
   pdf:
     url: https://rbidocs.rbi.org.in/rdocs/content/pdfs/RBIOS2021_amendments05082022.pdf
     fetched_on: 2026-11-19
+    sha256: 0d51cced7cce7481c45106cd8d2c260a34d4a65591e015262d1692d4a36d004b
   notes: >-
     Superseded by RB-IOS 2026 for complaints received from 1 Jul 2026. Kept for history only;
     VAPAS v1 drafts new complaints, so it never applies these rules. Amended by CEPD.PRD.No.S544/13.01.001/2022-23

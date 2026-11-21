@@ -14,6 +14,7 @@ import yaml
 from vapas.security.private_path_guard import find_code_root
 
 POLICY_FIELDS = frozenset({"finding_policy", "letter_scope", "user_inputs", "letter_disclosure"})
+SOURCE_LOCATION_FIELDS = ("page", "pdf", "source")
 SCHEMA_MODULE = "vapas_rules_schema"
 
 
@@ -102,6 +103,18 @@ def _split(raw: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
     return legal, policy
 
 
+def _without_source_locations(legal: dict[str, Any]) -> dict[str, Any]:
+    stripped: dict[str, Any] = json.loads(json.dumps(legal))
+    for content in stripped.values():
+        for key in SOURCE_LOCATION_FIELDS:
+            content.get("instrument", {}).pop(key, None)
+        for group in ("tat_rules", "ombudsman_rules", "day_type_overrides"):
+            for rule in content.get(group, []):
+                for key in SOURCE_LOCATION_FIELDS:
+                    rule.pop(key, None)
+    return stripped
+
+
 @lru_cache(maxsize=4)
 def load_rulebook(rules_dir: Path | None = None) -> RuleBook:
     folder = rules_dir or default_rules_dir()
@@ -138,4 +151,6 @@ def load_rulebook(rules_dir: Path | None = None) -> RuleBook:
     )
     instrument = raw["instrument"]
     reference = instrument.get("dept_ref") or instrument["ref_no"]
-    return RuleBook(instrument["id"], reference, rules, overrides, _digest(legal), legal, policy)
+    return RuleBook(
+        instrument["id"], reference, rules, overrides, _digest(_without_source_locations(legal)), legal, policy
+    )

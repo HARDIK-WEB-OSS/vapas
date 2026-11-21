@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 DEFAULT_LIMIT = 5
 MAX_QUERY_CHARS = 300
 WORD = re.compile(r"[a-z0-9]+")
+YEAR = re.compile(r"\b(20[1-3][0-9])\b")
 
 THESAURUS: dict[str, tuple[str, ...]] = {
     "refund": ("reversal",),
@@ -77,7 +78,8 @@ SEARCH = text(
     SELECT c.instrument_id, c.instrument_title, c.instrument_ref, c.clause, c.rule_id, c.body, c.url, c.page,
            c.legal_status, c.verified, c.source,
            (s.idf + 5 * ts_rank_cd(c.search, to_tsquery('simple', combined.q)))
-               * CASE WHEN c.legal_status = 'in_force' THEN 1.0 ELSE 0.6 END AS rank
+               * CASE WHEN c.legal_status = 'in_force' OR c.instrument_id LIKE ANY(CAST(:years AS text[])) THEN 1.0
+                      ELSE 0.6 END AS rank
     FROM scored s JOIN circular_clauses c ON c.id = s.id, combined
     ORDER BY rank DESC, c.verified DESC, c.id
     LIMIT :limit
@@ -115,5 +117,12 @@ async def search(conn: AsyncConnection, question: str, limit: int = DEFAULT_LIMI
     words = expand(question)
     if not words:
         return []
-    rows = await conn.execute(SEARCH, {"words": words, "limit": limit})
-    return [ClauseHit(**dict(row._mapping)) for row in rows]
+    years = [f"%{year}%" for year in YEAR.findall(question)]
+    rows = await conn.execute(SEARCH, {"words": words, "limit": limit * 3, "years": years})
+    hits: dict[tuple[str, str], ClauseHit] = {}
+    for row in rows:
+        hit = ClauseHit(**dict(row._mapping))
+        key = (hit.instrument_id, hit.clause)
+        if key not in hits or (hit.verified and not hits[key].verified):
+            hits[key] = hit
+    return sorted(hits.values(), key=lambda h: -h.rank)[:limit]

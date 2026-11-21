@@ -14,7 +14,7 @@ VAPAS must cite exact clauses from a small set of verified instruments: the TAT 
 Option 3. `circular_clauses` holds one row per clause with instrument id, clause number, text and URL. Every answer path returns a citation or "not found".
 
 ## Result (M6, 21 Nov 2026)
-On the 30-question evaluation over the 26 verified clause quotes, plain `ts_rank_cd` reached recall@5 0.933 and recall@1 0.533. Adding an inverse-document-frequency score (rare exact terms such as APBS or NACH outweigh common words) and a small domain thesaurus for everyday words raised this to recall@5 1.000 and recall@1 0.767 (`docs/knowledge_eval.md`). pgvector is therefore not built. The evaluation is re-run after the full PDFs are ingested.
+After indexing the 26 verified quotes and the three source PDFs (320 clauses), recall@5 is 0.933 and recall@1 0.800 on the 30-question evaluation, using full-text search with an inverse-document-frequency score, a small domain thesaurus and year-aware ranking (`docs/knowledge_eval.md` has the full history). Plain `ts_rank_cd` on the quotes alone reached recall@1 0.533. pgvector is not built because recall@5 is above 0.9.
 
 ## Consequences
 - No embedding model and no extra extension or service in v1.

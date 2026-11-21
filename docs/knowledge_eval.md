@@ -6,19 +6,27 @@ Search: Postgres full-text search over clause rows with a small domain thesaurus
 The questions and the thesaurus were written by the same person, so these numbers are optimistic;
 real user questions will be measured in the pilot.
 
-- recall@1: 0.767
-- recall@5: 1.000 (target 0.9; pgvector hybrid search only if below)
+- recall@1: 0.800
+- recall@5: 0.933 (target 0.9; pgvector hybrid search only if below)
 
-Misses: none
+Misses:
+- "Does putting RBI in cc on my complaint email to the bank count as a complaint to the Ombudsman?" expected Clause 10(1)(a) (rbi.rbios_2026); got Clause 13(2), Clause 8(6), Clause 14(2), Clause 14(7), Clause 14(4)
+- "Under the old 2021 scheme, how long after the bank's reply could I complain?" expected Clause 10(2)(a)(ii) (rbi.rbios_2021); got Clause 10(1)(f), Clause 3(1)(e), Clause 3(1)(e), Clause 10(1)(e), Clause 10(2)(a)(i)
 
 ## History
 
-| Version | Ranking | recall@1 | recall@5 |
+| Index | Ranking | recall@1 | recall@5 |
 |---|---|---|---|
-| M6 first run | `ts_rank_cd` over an OR query of all question words | 0.533 | 0.933 |
-| M6 final | adds an inverse-document-frequency score so rare exact terms (APBS, NACH, Limitation Act) outweigh common ones | 0.767 | 1.000 |
+| 26 verified quotes | `ts_rank_cd` over an OR query of all question words | 0.533 | 0.933 |
+| 26 verified quotes | plus an inverse-document-frequency score (rare exact terms such as APBS, NACH outweigh common words) | 0.767 | 1.000 |
+| 320 clauses (quotes plus the three PDFs) | same | 0.800 | 0.933 |
+| 320 clauses | plus: a year named in the question stops older instruments being ranked down | 0.833 | 0.933 |
+| 320 clauses | plus: fourth numbering level, so 2021 Clause 10(2)(a)(ii) is labelled correctly instead of 10(2)(ii) | 0.800 | 0.933 |
 
-pgvector hybrid search is not built: recall@5 is above 0.9 (ADR 0008). The index currently holds the 26 verified
-clause quotes from `rules/rbi/*.yaml`. Full PDF text (circular paragraphs, General Instructions, other RB-IOS
-clauses) is added with `scripts/ingest_rbi.py --pdf INSTRUMENT_ID=PATH` once the source PDFs and their SHA-256
-hashes are recorded; the evaluation is re-run then, because more clauses make ranking harder.
+The last change fixed a wrong citation label, so it is kept even though recall@1 dropped slightly.
+pgvector hybrid search is not built: recall@5 stays above 0.9 (ADR 0008).
+
+Indexed sources: TAT circular PDF (sha256 666fe280...), RB-IOS 2026 scheme PDF (f1195749...), RB-IOS 2021 scheme PDF
+(0d51cced...), each checked against the rule YAML before ingestion, plus the 26 verified quotes. The RB-IOS 2026 FAQ
+document is not a legal source and is refused by its hash. PDF clauses are marked unverified; only the YAML quotes are
+verified. The TAT annex table is covered by the verified quotes, because PDF text extraction interleaves its columns.

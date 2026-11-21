@@ -78,3 +78,43 @@ def test_everyday_words_are_expanded_to_legal_terms() -> None:
     words = expand("Money deducted, I want a refund from the shop")
     assert {"debited", "reversal", "merchant"} <= set(words.split())
     assert expand("!!!") == ""
+
+
+def test_segmenter_stops_at_the_annex() -> None:
+    pages = [
+        "1. Short title of the scheme and its extent here.\n2. Definitions used across the scheme text.\n",
+        "Annex - A\n1. Name of the complainant field in the form\n6. Staff complaint question in the form text\n",
+    ]
+    assert [s.label for s in segment(pages, "Clause")] == ["Clause 1", "Clause 2"]
+
+
+def test_roman_numerals_under_a_letter_are_a_fourth_level() -> None:
+    text = (
+        "10. Grounds for non-maintainability\n"
+        "(2) No complaint shall lie under the Scheme unless:\n"
+        "(a) the complaint is made within the following period of time:\n"
+        "(i) within one year after the reply of the Regulated Entity, or\n"
+        "(ii) within one year and 30 days where no reply is received from it;\n"
+        "(b) the complaint is not in respect of the same cause of action already settled\n"
+    )
+    labels = [s.label for s in segment([text], "Clause")]
+    assert labels == [
+        "Clause 10",
+        "Clause 10(2)",
+        "Clause 10(2)(a)",
+        "Clause 10(2)(a)(i)",
+        "Clause 10(2)(a)(ii)",
+        "Clause 10(2)(b)",
+    ]
+
+
+def test_letter_i_after_h_stays_a_letter() -> None:
+    text = (
+        "10. Grounds for non-maintainability\n"
+        "(1) No complaint shall lie unless all conditions below are met:\n"
+        "(h) the complaint is not pending before the Ombudsman office;\n"
+        "(i) the complaint is not already settled by any Ombudsman earlier;\n"
+        "(j) the complaint is not pending before any court or tribunal;\n"
+    )
+    labels = [s.label for s in segment([text], "Clause")]
+    assert labels[-3:] == ["Clause 10(1)(h)", "Clause 10(1)(i)", "Clause 10(1)(j)"]

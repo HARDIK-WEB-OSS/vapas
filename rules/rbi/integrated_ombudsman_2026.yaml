@@ -14,6 +14,7 @@ instrument:
   pdf:
     url: https://rbidocs.rbi.org.in/rdocs/content/pdfs/SCHEME16012026_A.pdf
     fetched_on: 2026-11-19
+    sha256: f119574982a073819d2286c3d016ef10e1fbeebed8e23864e40e885d950901b6
   notes: >-
     Replaces RB-IOS 2021 for complaints received on or after 1 Jul 2026. Clause 10 and 11 rules were checked by the
     user against the scheme PDF, downloaded manually. Appeal and transition clauses are not encoded (not used in v1,

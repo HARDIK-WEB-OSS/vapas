@@ -1,5 +1,7 @@
 import itertools
+import shutil
 from datetime import date, timedelta
+from pathlib import Path
 
 import pytest
 from hypothesis import given, settings
@@ -9,7 +11,7 @@ from vapas.classify.channel_rules import Channel, Kind
 from vapas.detect.engine import detect
 from vapas.detect.model import Confidence, Detector, Finding, Level, Question, Txn, TxnKey, UserAnswers
 from vapas.ingest.model import Direction
-from vapas.rules.loader import load_rulebook
+from vapas.rules.loader import default_rules_dir, load_rulebook
 
 AS_OF = date(2026, 11, 20)
 RULES = load_rulebook()
@@ -426,3 +428,23 @@ def test_customer_answer_overrides_the_statement_signal() -> None:
     debit, credit = pair(Channel.UPI, date(2026, 6, 1), date(2026, 6, 10), narration="UPI/P2M/SWIGGY")
     finding = only(run([debit, credit], UserAnswers(payee_was_merchant={debit.key: False})))
     assert (finding.level, finding.amount_owed_paise) == (Level.INFORMATIONAL, None)
+
+
+def test_source_location_changes_do_not_change_the_rules_hash(tmp_path: Path) -> None:
+    moved = tmp_path / "moved"
+    shutil.copytree(default_rules_dir(), moved)
+    target = moved / "rbi" / "integrated_ombudsman_2026.yaml"
+    target.write_text(
+        target.read_text(encoding="utf-8").replace("fetched_on: 2026-11-19", "fetched_on: 2026-11-20", 1),
+        encoding="utf-8",
+    )
+    assert load_rulebook(moved).rules_sha256 == RULES.rules_sha256
+
+    reworded = tmp_path / "reworded"
+    shutil.copytree(default_rules_dir(), reworded)
+    tat = reworded / "rbi" / "tat_failed_transactions.yaml"
+    tat.write_text(
+        tat.read_text(encoding="utf-8").replace("to the credit of the account holder", "to the account holder", 1),
+        encoding="utf-8",
+    )
+    assert load_rulebook(reworded).rules_sha256 != RULES.rules_sha256
