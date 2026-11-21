@@ -1,0 +1,61 @@
+questions:
+  - question: My account was debited at the ATM but no cash came out. How long does the bank have to fix it?
+    expected: [rbi.dpss_629_2019, Annex Sl. 1(a)]
+  - question: Micro ATM took money from my account and did not give cash. What compensation per day?
+    expected: [rbi.dpss_629_2019, Annex Sl. 1(a)]
+  - question: Card to card transfer failed, my card account was debited but the other card was not credited
+    expected: [rbi.dpss_629_2019, Annex Sl. 2(a)]
+  - question: I swiped my card at a shop, money was cut but no charge slip was generated
+    expected: [rbi.dpss_629_2019, Annex Sl. 2(b)]
+  - question: Online card payment on a website failed but my account was debited
+    expected: [rbi.dpss_629_2019, Annex Sl. 2(c)]
+  - question: IMPS transfer debited from my account but the beneficiary account was not credited
+    expected: [rbi.dpss_629_2019, Annex Sl. 3(a)]
+  - question: I sent money by UPI to a friend, it was deducted but never reached them
+    expected: [rbi.dpss_629_2019, Annex Sl. 4(a)]
+  - question: UPI payment to a merchant failed but the money was deducted from my account
+    expected: [rbi.dpss_629_2019, Annex Sl. 4(b)]
+  - question: Aadhaar payment at a shop debited my account but the merchant did not get confirmation
+    expected: [rbi.dpss_629_2019, Annex Sl. 5(a)]
+  - question: AePS fund transfer debited but the beneficiary account was not credited
+    expected: [rbi.dpss_629_2019, Annex Sl. 5(b)]
+  - question: APBS credit to my account is delayed, when should it be credited?
+    expected: [rbi.dpss_629_2019, Annex Sl. 6(a)]
+  - question: A NACH credit to my account is delayed
+    expected: [rbi.dpss_629_2019, Annex Sl. 7(a)]
+  - question: Bank took my EMI through autopay even though I cancelled the mandate
+    expected: [rbi.dpss_629_2019, Annex Sl. 7(b)]
+  - question: Wallet payment that rides on UPI or card network failed
+    expected: [rbi.dpss_629_2019, Annex Sl. 8(a)]
+  - question: Wallet to wallet transfer with the same wallet company was not credited
+    expected: [rbi.dpss_629_2019, Annex Sl. 8(b)]
+  - question: Does putting RBI in cc on my complaint email to the bank count as a complaint to the Ombudsman?
+    expected: [rbi.rbios_2026, Clause 10(1)(a)]
+  - question: Can a lawyer file the Ombudsman complaint on my behalf?
+    expected: [rbi.rbios_2026, Clause 10(1)(b)]
+  - question: Do I have to complain to my bank first before going to the Ombudsman?
+    expected: [rbi.rbios_2026, Clause 10(1)(e)]
+  - question: How many days must I wait for the bank's reply before I can escalate?
+    expected: [rbi.rbios_2026, Clause 10(1)(f)]
+  - question: What is the deadline to file with the Ombudsman after the bank's last reply?
+    expected: [rbi.rbios_2026, Clause 10(1)(g)]
+  - question: Can I go to the Ombudsman if the same grievance is already in court or arbitration?
+    expected: [rbi.rbios_2026, Clause 10(1)(h)-(k)]
+  - question: Is my complaint too old under the Limitation Act?
+    expected: [rbi.rbios_2026, Clause 10(1)(l)]
+  - question: What happens to a complaint that does not meet the eligibility conditions?
+    expected: [rbi.rbios_2026, Clause 10(3)]
+  - question: How do I lodge a complaint with the Ombudsman, is there an online portal?
+    expected: [rbi.rbios_2026, Clause 11(1) and 11(2)]
+  - question: Can I send my Ombudsman complaint by e-mail or post instead of online?
+    expected: [rbi.rbios_2026, Clause 11(1) and 11(2)]
+  - question: Under the old 2021 scheme, how long after the bank's reply could I complain?
+    expected: [rbi.rbios_2021, Clause 10(2)(a)(ii)]
+  - question: During covid in 2020 were reversal timelines counted in working days?
+    expected: [rbi.dpss_1897_2020, Annex SN 3]
+  - question: Were calendar days read as working days until September 2021?
+    expected: [rbi.dpss_s106_2021, Annexure SN 2]
+  - question: The bank reversed my failed ATM withdrawal after 10 days. Do they owe me Rs 100 per day?
+    expected: [rbi.dpss_629_2019, Annex Sl. 1(a)]
+  - question: Who pays the penalty when an IMPS transfer is not credited to the beneficiary?
+    expected: [rbi.dpss_629_2019, Annex Sl. 3(a)]

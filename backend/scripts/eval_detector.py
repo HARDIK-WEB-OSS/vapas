@@ -1,4 +1,5 @@
 import argparse
+import io
 import sys
 from collections import Counter
 from datetime import date
@@ -67,6 +68,8 @@ def main() -> int:
         *[f"- {line}" for line in false_positives],
     ]
     text = "\n".join(lines) + "\n"
+    if isinstance(sys.stdout, io.TextIOWrapper):
+        sys.stdout.reconfigure(encoding="utf-8")
     print(text)
     if args.write:
         REPORT.write_text(text, encoding="utf-8")

@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from vapas.api.routes_account import router as account_router
 from vapas.api.routes_findings import router as findings_router
+from vapas.api.routes_knowledge import router as knowledge_router
 from vapas.api.routes_statements import router as statements_router
 from vapas.auth.routes import router as auth_router
 from vapas.config import Settings, get_settings
@@ -47,6 +48,7 @@ def create_app(settings: Settings | None = None, probes: Mapping[str, Probe] | N
     app.include_router(account_router)
     app.include_router(statements_router)
     app.include_router(findings_router)
+    app.include_router(knowledge_router)
 
     @app.get("/health")
     async def health() -> Liveness:

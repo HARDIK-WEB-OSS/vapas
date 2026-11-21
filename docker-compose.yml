@@ -93,7 +93,7 @@ services:
 
   migrate:
     <<: *backend
-    command: ["alembic", "upgrade", "head"]
+    command: ["sh", "-c", "alembic upgrade head && python scripts/ingest_rbi.py --rules"]
     restart: "no"
     depends_on:
       db-roles:
