@@ -16,4 +16,4 @@ COPY rules/ ./rules/
 RUN uv sync --locked --no-dev && useradd --create-home --uid 10001 vapas
 USER vapas
 EXPOSE 8000
-CMD ["uvicorn", "vapas.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "--factory", "vapas.main:create_app", "--host", "0.0.0.0", "--port", "8000", "--no-server-header", "--timeout-graceful-shutdown", "25"]

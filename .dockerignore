@@ -18,3 +18,5 @@ frontend
 **/*.xlsx
 **/.hypothesis
 backend/tests
+**/node_modules
+backend/loadtest
