@@ -25,6 +25,8 @@ dependencies = [
     "scipy>=1.14",
     "rapidfuzz>=3.10",
     "fpdf2>=2.8",
+    "sentry-sdk>=2.20",
+    "dnspython>=2.7",
 ]
 
 [dependency-groups]
@@ -61,6 +63,7 @@ ignore = ["S101", "S105"]
 "tests/**" = ["S106", "S603", "S607", "S608"]
 "src/vapas/synthetic/**" = ["S311", "E501"]
 "scripts/**" = ["S311"]
+"scripts/backup_restore_check.py" = ["S603"]
 "src/vapas/letters/templates.py" = ["E501"]
 "src/vapas/cases/reminders.py" = ["E501"]
 
@@ -69,7 +72,7 @@ python_version = "3.11"
 strict = true
 plugins = ["pydantic.mypy"]
 mypy_path = "src"
-files = ["src", "tests", "scripts", "migrations"]
+files = ["src", "tests", "scripts", "migrations", "loadtest"]
 
 [[tool.mypy.overrides]]
 module = ["xlrd", "xlrd.*", "xlwt", "scipy", "scipy.*"]

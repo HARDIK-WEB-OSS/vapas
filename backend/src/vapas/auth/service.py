@@ -9,13 +9,16 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from vapas.auth import passwords
+from vapas.auth.invites import InvalidInviteError, invite_code_hash
 from vapas.auth.tokens import hash_opaque_token, issue_access_token, new_opaque_token
 from vapas.config import Settings
 from vapas.db import repo
 from vapas.db.session import Database
 from vapas.mail.sender import EmailMessage, EmailSender
 from vapas.privacy.notices import CURRENT_NOTICE_VERSION
+from vapas.rules.loader import default_rules_dir
 from vapas.security.crypto import KeyRing, new_data_key
+from vapas.security.email_domains import MxLookup, Verdict, email_verdict, load_domain_policy, lookup_mx
 from vapas.security.ratelimit import (
     EMAIL_PER_ACCOUNT,
     EMAIL_PER_IP,
@@ -58,6 +61,12 @@ class ConsentVersionError(AuthError):
     pass
 
 
+class EmailDomainRejectedError(AuthError):
+    def __init__(self, verdict: Verdict) -> None:
+        super().__init__(f"email domain rejected: {verdict.value}")
+        self.verdict = verdict
+
+
 @dataclass(frozen=True)
 class Grant:
     access_token: str
@@ -84,6 +93,8 @@ class AuthService:
         self._keys = keys
         self._limiter = limiter
         self._mailer = mailer
+        self._domains = load_domain_policy(settings.rules_dir or default_rules_dir())
+        self._mx: MxLookup | None = lookup_mx if settings.email_mx_check else None
         secret = settings.jwt_secret.get_secret_value().encode()
         self._ip_key = hmac.new(secret, b"ip-hash", hashlib.sha256).digest()
 
@@ -98,22 +109,38 @@ class AuthService:
     async def _send_link(self, email: str, subject: str, page: str, token: str, kind: str) -> None:
         link = f"{self._settings.public_app_url}/{page}#token={token}"
         body = f"Open this link to continue:\n{link}\n\nIf you did not ask for this, ignore this email."
-        await self._mailer.send(EmailMessage(to=email, subject=subject, body=body, kind=kind))
+        try:
+            await self._mailer.send(EmailMessage(to=email, subject=subject, body=body, kind=kind))
+        except Exception as error:
+            log.error("auth email not sent", extra={"kind": kind, "error_type": type(error).__name__})
 
     async def _lookup_token(self, token: str, purpose: str) -> repo.EmailTokenRow:
         async with self._db.anonymous() as conn:
             return _usable(await repo.lookup_email_token(conn, hash_opaque_token(token), purpose))
 
-    async def signup(self, email: str, password: str, notice_version: str, locale: str, ip: str) -> None:
+    async def signup(
+        self, email: str, password: str, notice_version: str, locale: str, ip: str, invite_code: str | None = None
+    ) -> None:
         await self._require(SIGNUP_PER_IP, ip)
         if notice_version != CURRENT_NOTICE_VERSION:
             raise ConsentVersionError("consent notice version is not current")
+        if self._settings.invite_only and not invite_code:
+            raise InvalidInviteError("an invite code is required")
+        verdict = await email_verdict(email, self._domains, self._mx)
+        if verdict is not Verdict.ALLOWED:
+            log.info("signup refused for email domain", extra={"verdict": verdict.value})
+            raise EmailDomainRejectedError(verdict)
         passwords.check_password_strength(password, email)
         user_id = uuid4()
         token = new_opaque_token()
         try:
             async with self._db.as_user(user_id) as conn:
-                await repo.insert_user(conn, user_id, email, passwords.hash_password(password), locale)
+                invite_id = None
+                if self._settings.invite_only and invite_code:
+                    invite_id = await repo.redeem_invite(conn, invite_code_hash(invite_code))
+                    if invite_id is None:
+                        raise InvalidInviteError("invite code is invalid, used up or expired")
+                await repo.insert_user(conn, user_id, email, passwords.hash_password(password), locale, invite_id)
                 await repo.insert_user_key(conn, user_id, self._keys.wrap(new_data_key(), user_id))
                 await repo.insert_consent(conn, user_id, notice_version, CORE_PURPOSE)
                 expires = _now() + VERIFY_TOKEN_LIFETIME

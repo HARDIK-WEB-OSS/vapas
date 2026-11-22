@@ -1,0 +1,7 @@
+source_url: https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/main/disposable_email_blocklist.conf
+license: CC0 1.0 Universal (public domain dedication), per LICENSE.txt in the same
+  repository
+fetched_on: '2026-11-22'
+sha256: 00c87dbccd3c77e54d37d6d8e133e97647d98e60f37038c70ad6f9673de3a575
+domains: 10455
+invalid_lines_skipped: 0

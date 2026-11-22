@@ -1,5 +1,6 @@
 import asyncio
 import hashlib
+import itertools
 import re
 from collections.abc import Iterator
 from pathlib import Path
@@ -27,6 +28,12 @@ from vapas.privacy.notices import CURRENT_NOTICE_VERSION
 TEST_REDIS_DB = 15
 PASSWORD = "statement-audit-2026"
 TOKEN_IN_LINK = re.compile(r"#token=(\S+)")
+_client_numbers = itertools.count(1)
+
+
+def fresh_client_address() -> tuple[str, int]:
+    number = next(_client_numbers)
+    return f"10.{number // 65536 % 256}.{number // 256 % 256}.{number % 256}", 50000
 
 
 def _test_redis_url(url: str) -> str:
@@ -37,7 +44,7 @@ def _test_redis_url(url: str) -> str:
 def live_settings() -> Settings:
     settings = Settings()
     redis_url = SecretStr(_test_redis_url(settings.redis_url.get_secret_value()))
-    return settings.model_copy(update={"redis_url": redis_url})
+    return settings.model_copy(update={"redis_url": redis_url, "mail_backend": "capture", "email_mx_check": False})
 
 
 def owner_sql(settings: Settings, sql: str, params: dict[str, Any] | None = None) -> list[Any]:
@@ -59,13 +66,16 @@ def owner_sql(settings: Settings, sql: str, params: dict[str, Any] | None = None
 
 @pytest.fixture(autouse=True)
 def clean_state(live_settings: Settings) -> None:
-    owner_sql(live_settings, "TRUNCATE users, audit_log, analytics_events, rule_versions RESTART IDENTITY CASCADE")
+    owner_sql(
+        live_settings,
+        "TRUNCATE users, invite_codes, audit_log, analytics_events, rule_versions RESTART IDENTITY CASCADE",
+    )
     Redis.from_url(live_settings.redis_url.get_secret_value()).flushdb()
 
 
 @pytest.fixture
 def client(live_settings: Settings) -> Iterator[TestClient]:
-    with TestClient(create_app(live_settings)) as test_client:
+    with TestClient(create_app(live_settings), client=fresh_client_address()) as test_client:
         yield test_client
 
 
