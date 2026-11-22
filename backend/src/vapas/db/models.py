@@ -28,6 +28,19 @@ users = Table(
     Column("locale", Text, nullable=False),
     Column("password_changed_at", DateTime(timezone=True), nullable=False),
     Column("created_at", DateTime(timezone=True), nullable=False),
+    Column("invite_id", UUID(as_uuid=True), ForeignKey("invite_codes.id")),
+)
+
+invite_codes = Table(
+    "invite_codes",
+    metadata,
+    Column("id", UUID(as_uuid=True), primary_key=True),
+    Column("code_hash", LargeBinary, nullable=False, unique=True),
+    Column("cohort", Text, nullable=False),
+    Column("max_uses", Integer, nullable=False),
+    Column("used_count", Integer, nullable=False),
+    Column("expires_at", DateTime(timezone=True)),
+    Column("created_at", DateTime(timezone=True), nullable=False),
 )
 
 user_keys = Table(
@@ -261,6 +274,8 @@ cases = Table(
     Column("filing_deadline_on", Date),
     Column("deadline_rule_version_id", BigInteger, ForeignKey("rule_versions.id")),
     Column("closed_reason", Text),
+    Column("recovered_paise", BigInteger),
+    Column("recovered_on", Date),
     Column("created_at", DateTime(timezone=True), nullable=False),
     Column("updated_at", DateTime(timezone=True), nullable=False),
 )
@@ -279,4 +294,14 @@ letters = Table(
     Column("guardrail_note", Text, nullable=False),
     Column("approved_at", DateTime(timezone=True)),
     Column("created_at", DateTime(timezone=True), nullable=False),
+)
+
+finding_feedback = Table(
+    "finding_feedback",
+    metadata,
+    Column("finding_id", UUID(as_uuid=True), ForeignKey("findings.id"), primary_key=True),
+    Column("user_id", UUID(as_uuid=True), ForeignKey("users.id"), nullable=False),
+    Column("verdict", Text, nullable=False),
+    Column("created_at", DateTime(timezone=True), nullable=False),
+    Column("updated_at", DateTime(timezone=True), nullable=False),
 )

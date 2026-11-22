@@ -73,8 +73,20 @@ async def current_notice(conn: AsyncConnection) -> NoticeRow | None:
     return None if row is None else NoticeRow(row.version, row.text_en, row.text_hi)
 
 
-async def insert_user(conn: AsyncConnection, user_id: UUID, email: str, password_hash: str, locale: str) -> None:
-    await conn.execute(insert(users).values(id=user_id, email=email, password_hash=password_hash, locale=locale))
+async def insert_user(
+    conn: AsyncConnection, user_id: UUID, email: str, password_hash: str, locale: str, invite_id: UUID | None = None
+) -> None:
+    values = {"id": user_id, "email": email, "password_hash": password_hash, "locale": locale, "invite_id": invite_id}
+    await conn.execute(insert(users).values(**values))
+
+
+async def redeem_invite(conn: AsyncConnection, code_hash: bytes) -> UUID | None:
+    invite_id: UUID | None = await conn.scalar(text("SELECT redeem_invite(:h)"), {"h": code_hash})
+    return invite_id
+
+
+async def set_locale(conn: AsyncConnection, user_id: UUID, locale: str) -> None:
+    await conn.execute(update(users).where(users.c.id == user_id).values(locale=locale))
 
 
 async def get_user(conn: AsyncConnection, user_id: UUID) -> UserRow | None:

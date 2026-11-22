@@ -33,6 +33,7 @@ class FindingOut(BaseModel):
     accruing: bool
     why: str
     created_at: datetime
+    feedback: str | None = None
 
 
 class FindingDetail(FindingOut):
@@ -45,6 +46,10 @@ class AnswerIn(BaseModel):
     proof: bool | None = None
 
 
+class FeedbackIn(BaseModel):
+    verdict: Literal["correct", "wrong", "not_sure"]
+
+
 class StatusIn(BaseModel):
     status: Literal["confirmed", "dismissed", "open"]
 
@@ -53,8 +58,9 @@ class Accepted(BaseModel):
     status: str
 
 
-def _out(row: store.StoredFinding) -> FindingOut:
-    return FindingOut(**{name: getattr(row, name) for name in FindingOut.model_fields})
+def _out(row: store.StoredFinding, feedback: str | None = None) -> FindingOut:
+    fields = {name: getattr(row, name) for name in FindingOut.model_fields if name != "feedback"}
+    return FindingOut(**fields, feedback=feedback)
 
 
 async def _owned(user: CurrentUser, finding_id: UUID) -> store.StoredFinding:
@@ -80,7 +86,8 @@ def _answer(row: store.StoredFinding, body: AnswerIn) -> tuple[str, dict[str, An
 
 @router.get("")
 async def list_findings(user: CurrentUserDep) -> list[FindingOut]:
-    return [_out(row) for row in await store.current(user.conn, user.user_id)]
+    verdicts = await store.feedback_by_finding(user.conn, user.user_id)
+    return [_out(row, verdicts.get(row.id)) for row in await store.current(user.conn, user.user_id)]
 
 
 @router.get("/{finding_id}")
@@ -107,3 +114,10 @@ async def set_status(finding_id: UUID, body: StatusIn, user: CurrentUserDep) -> 
     await _owned(user, finding_id)
     await store.set_status(user.conn, finding_id, body.status)
     return Accepted(status=body.status)
+
+
+@router.post("/{finding_id}/feedback")
+async def give_feedback(finding_id: UUID, body: FeedbackIn, user: CurrentUserDep) -> Accepted:
+    await _owned(user, finding_id)
+    await store.save_feedback(user.conn, user.user_id, finding_id, body.verdict)
+    return Accepted(status=body.verdict)

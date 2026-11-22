@@ -4,6 +4,7 @@ from fastapi import APIRouter, Cookie, Response, status
 from pydantic import BaseModel, EmailStr, Field
 
 from vapas.auth.deps import ClientIpDep, CurrentUserDep, ServicesDep
+from vapas.auth.invites import MAX_CODE_LENGTH
 from vapas.auth.passwords import MAX_PASSWORD_LENGTH
 from vapas.auth.service import Grant, InvalidTokenError
 from vapas.config import Settings
@@ -19,6 +20,7 @@ class SignupIn(BaseModel):
     password: str = Field(max_length=MAX_PASSWORD_LENGTH)
     consent_notice_version: str = Field(max_length=32)
     locale: Literal["en", "hi"] = "en"
+    invite_code: str | None = Field(default=None, max_length=MAX_CODE_LENGTH)
 
 
 class EmailIn(BaseModel):
@@ -72,7 +74,9 @@ def _clear_refresh_cookie(response: Response, settings: Settings) -> None:
 
 @router.post("/signup", status_code=status.HTTP_202_ACCEPTED)
 async def signup(body: SignupIn, services: ServicesDep, ip: ClientIpDep) -> Status:
-    await services.auth.signup(body.email, body.password, body.consent_notice_version, body.locale, ip)
+    await services.auth.signup(
+        body.email, body.password, body.consent_notice_version, body.locale, ip, body.invite_code
+    )
     return CHECK_EMAIL
 
 

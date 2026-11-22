@@ -5,7 +5,7 @@ from datetime import date, datetime
 from typing import Any
 from uuid import UUID, uuid4
 
-from sqlalchemy import and_, func, select, update
+from sqlalchemy import and_, func, select, text, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncConnection
 
@@ -172,3 +172,18 @@ async def set_status(conn: AsyncConnection, finding_id: UUID, status: str) -> No
 
 def snapshot_json(payload: dict[str, Any]) -> str:
     return json.dumps(payload, sort_keys=True, default=str)
+
+
+async def feedback_by_finding(conn: AsyncConnection, user_id: UUID) -> dict[UUID, str]:
+    query = text("SELECT finding_id, verdict FROM finding_feedback WHERE user_id = :u")
+    return {row.finding_id: row.verdict for row in await conn.execute(query, {"u": user_id})}
+
+
+async def save_feedback(conn: AsyncConnection, user_id: UUID, finding_id: UUID, verdict: str) -> None:
+    await conn.execute(
+        text(
+            "INSERT INTO finding_feedback (finding_id, user_id, verdict) VALUES (:f, :u, :v) "
+            "ON CONFLICT (finding_id) DO UPDATE SET verdict = EXCLUDED.verdict, updated_at = now()"
+        ),
+        {"f": finding_id, "u": user_id, "v": verdict},
+    )

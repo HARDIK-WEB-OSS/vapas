@@ -4,9 +4,11 @@ from fastapi.testclient import TestClient
 from vapas.auth.routes import REFRESH_COOKIE
 from vapas.config import Settings
 from vapas.privacy.notices import CURRENT_NOTICE_VERSION
-from vapas.security.ratelimit import LOGIN_FAILURES_PER_ACCOUNT, LOGIN_PER_IP
+from vapas.security.ratelimit import LOGIN_FAILURES_PER_ACCOUNT, LOGIN_PER_IP, Limit
 
 from .conftest import PASSWORD, bearer, last_token, login, mailbox, owner_sql, signup
+
+NO_REFILL_SECONDS = 10**9
 
 pytestmark = pytest.mark.integration
 
@@ -94,11 +96,12 @@ def test_account_locks_after_repeated_failures(client: TestClient) -> None:
     assert int(locked.headers["Retry-After"]) >= 1
 
 
-def test_login_is_rate_limited_per_ip(client: TestClient) -> None:
+def test_login_is_rate_limited_per_ip(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    frozen = Limit(LOGIN_PER_IP.name, LOGIN_PER_IP.capacity, NO_REFILL_SECONDS)
+    monkeypatch.setattr("vapas.auth.service.LOGIN_PER_IP", frozen)
     body = {"email": "nobody@example.in", "password": "whatever-password"}
     codes = [client.post("/auth/login", json=body).status_code for _ in range(LOGIN_PER_IP.capacity + 1)]
-    assert codes[:-1] == [401] * LOGIN_PER_IP.capacity
-    assert codes[-1] == 429
+    assert codes == [401] * LOGIN_PER_IP.capacity + [429]
 
 
 def test_password_reset_revokes_sessions_and_token_is_single_use(client: TestClient) -> None:
@@ -155,7 +158,9 @@ def test_export_contains_my_data_and_no_secrets(client: TestClient) -> None:
     assert response.status_code == 200
     assert "attachment" in response.headers["Content-Disposition"]
     data = response.json()
-    assert data["format_version"] == 1
+    assert data["format_version"] == 2
+    for section in ("findings", "finding_feedback", "cases", "letters", "case_events", "user_inputs"):
+        assert data[section] == []
     assert data["profile"][0]["email"] == EMAIL
     assert data["consents"][0]["notice_version"] == CURRENT_NOTICE_VERSION
     assert len(data["sessions"]) == 1

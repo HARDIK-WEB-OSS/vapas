@@ -1,22 +1,24 @@
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException, Response, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
+from vapas.api.export_cases import finding_and_case_data
 from vapas.auth.deps import ClientIpDep, CurrentUser, CurrentUserDep, ServicesDep
 from vapas.auth.passwords import MAX_PASSWORD_LENGTH, verify_password
 from vapas.auth.routes import REFRESH_COOKIE, REFRESH_COOKIE_PATH
-from vapas.auth.service import CORE_PURPOSE
+from vapas.auth.service import CORE_PURPOSE, ConsentVersionError
 from vapas.db import repo
 from vapas.db import statements as store
+from vapas.privacy.notices import CURRENT_NOTICE_VERSION
 from vapas.security.user_keys import NARRATION, REF_NO, user_cipher
 from vapas.services import Services
 from vapas.storage.object_store import delete_user_objects
 
-EXPORT_FORMAT_VERSION = 1
+EXPORT_FORMAT_VERSION = 2
 
 router = APIRouter(tags=["account"])
 
@@ -28,6 +30,14 @@ class Me(BaseModel):
     locale: str
     created_at: datetime
     consent_active: bool
+
+
+class ConsentIn(BaseModel):
+    notice_version: str = Field(max_length=32)
+
+
+class LocaleIn(BaseModel):
+    locale: Literal["en", "hi"]
 
 
 class DeleteIn(BaseModel):
@@ -75,6 +85,9 @@ async def export(user: CurrentUserDep, services: ServicesDep, ip: ClientIpDep) -
         "exported_at": datetime.now(UTC),
         **await repo.export_user_data(user.conn, user.user_id),
         **await _statement_data(user, services),
+        **await finding_and_case_data(
+            user.conn, user.user_id, await user_cipher(user.conn, services.settings.key_ring(), user.user_id)
+        ),
     }
     await repo.write_audit(user.conn, user.user_id, "data_exported", services.auth.ip_hash(ip))
     headers = {"Content-Disposition": 'attachment; filename="vapas-export.json"', "Cache-Control": "no-store"}
@@ -118,6 +131,22 @@ async def _statement_data(user: CurrentUser, services: Services) -> dict[str, li
         for t in stored
     ]
     return {"statements": statements_out, "transactions": transactions_out}
+
+
+@router.post("/account/locale")
+async def change_locale(body: LocaleIn, user: CurrentUserDep) -> Status:
+    await repo.set_locale(user.conn, user.user_id, body.locale)
+    return Status(status=body.locale)
+
+
+@router.post("/account/consent")
+async def give_consent(body: ConsentIn, user: CurrentUserDep, services: ServicesDep, ip: ClientIpDep) -> Status:
+    if body.notice_version != CURRENT_NOTICE_VERSION:
+        raise ConsentVersionError("consent notice version is not current")
+    if not await repo.has_active_consent(user.conn, user.user_id, CORE_PURPOSE):
+        await repo.insert_consent(user.conn, user.user_id, body.notice_version, CORE_PURPOSE)
+        await repo.write_audit(user.conn, user.user_id, "consent_given", services.auth.ip_hash(ip))
+    return Status(status="active")
 
 
 @router.post("/account/consent/withdraw")
