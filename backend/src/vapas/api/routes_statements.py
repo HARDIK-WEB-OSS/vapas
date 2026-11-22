@@ -3,6 +3,7 @@ from datetime import date, datetime
 from typing import Annotated
 from uuid import UUID, uuid4
 
+from botocore.exceptions import BotoCoreError, ClientError
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel, Field
 
@@ -144,7 +145,7 @@ async def presign(body: PresignIn, user: AllowedUser, services: ServicesDep) -> 
     statement_id = uuid4()
     key = raw_key(str(user.user_id), str(statement_id))
     await store.create(user.conn, statement_id, user.user_id, sha, body.file_kind.value, body.size_bytes, key)
-    url = presign_upload(services.presign_client, services.settings.s3_bucket_raw, key, content_type)
+    url = presign_upload(services.presign_client, services.settings.s3_bucket_raw, key, content_type, body.size_bytes)
     return PresignOut(
         statement_id=statement_id,
         duplicate=False,
@@ -161,7 +162,10 @@ async def confirm(statement_id: UUID, body: PasswordIn, user: AllowedUser, servi
     if row.status != store.AWAITING_UPLOAD:
         return _out(row)
     deps = services.dependencies
-    size = await asyncio.to_thread(object_size, deps.s3, deps.bucket, row.object_key)
+    try:
+        size = await asyncio.to_thread(object_size, deps.s3, deps.bucket, row.object_key)
+    except (BotoCoreError, ClientError) as error:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, detail="temporarily_unavailable") from error
     if size is None or size != row.size_bytes:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="upload_incomplete")
     if body.password:

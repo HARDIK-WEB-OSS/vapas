@@ -64,7 +64,7 @@ services:
 
   bucket-init:
     <<: *backend
-    command: ["python", "scripts/create_local_bucket.py"]
+    command: ["python", "scripts/configure_bucket.py"]
     restart: "no"
     depends_on:
       objectstore:

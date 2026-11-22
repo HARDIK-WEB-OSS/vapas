@@ -12,10 +12,11 @@ from vapas.config import Settings
 
 if TYPE_CHECKING:
     from mypy_boto3_s3 import S3Client
-    from mypy_boto3_s3.type_defs import ObjectIdentifierTypeDef
+    from mypy_boto3_s3.type_defs import CORSRuleTypeDef, LifecycleRuleTypeDef, ObjectIdentifierTypeDef
 
 MISSING_BUCKET_CODES = frozenset({"404", "NoSuchBucket", "NotFound"})
 DELETE_BATCH = 1000
+RAW_LIFECYCLE_DAYS = 1
 USER_PREFIXES = ("raw/",)
 
 
@@ -39,6 +40,35 @@ def ensure_bucket(client: S3Client, bucket: str) -> bool:
         client.create_bucket(Bucket=bucket)
         return True
     return False
+
+
+def allow_browser_uploads(client: S3Client, bucket: str, origin: str) -> None:
+    rule: CORSRuleTypeDef = {
+        "AllowedOrigins": [origin],
+        "AllowedMethods": ["PUT"],
+        "AllowedHeaders": ["content-type"],
+        "MaxAgeSeconds": 600,
+    }
+    client.put_bucket_cors(Bucket=bucket, CORSConfiguration={"CORSRules": [rule]})
+
+
+def expire_raw_uploads(client: S3Client, bucket: str) -> None:
+    rule: LifecycleRuleTypeDef = {
+        "ID": "raw-uploads-backstop",
+        "Status": "Enabled",
+        "Filter": {"Prefix": RAW_PREFIX},
+        "Expiration": {"Days": RAW_LIFECYCLE_DAYS},
+        "AbortIncompleteMultipartUpload": {"DaysAfterInitiation": RAW_LIFECYCLE_DAYS},
+    }
+    client.put_bucket_lifecycle_configuration(Bucket=bucket, LifecycleConfiguration={"Rules": [rule]})
+
+
+def raw_lifecycle_days(client: S3Client, bucket: str) -> int | None:
+    rules = client.get_bucket_lifecycle_configuration(Bucket=bucket).get("Rules", [])
+    for rule in rules:
+        if rule.get("Status") == "Enabled" and rule.get("Filter", {}).get("Prefix") == RAW_PREFIX:
+            return rule.get("Expiration", {}).get("Days")
+    return None
 
 
 async def ping_bucket(client: S3Client, bucket: str) -> bool:
@@ -79,8 +109,8 @@ def create_presign_client(settings: Settings) -> S3Client:
     return create_s3_client(settings.model_copy(update={"s3_endpoint_url": public}))
 
 
-def presign_upload(client: S3Client, bucket: str, key: str, content_type: str) -> str:
-    params = {"Bucket": bucket, "Key": key, "ContentType": content_type}
+def presign_upload(client: S3Client, bucket: str, key: str, content_type: str, size_bytes: int) -> str:
+    params = {"Bucket": bucket, "Key": key, "ContentType": content_type, "ContentLength": size_bytes}
     return client.generate_presigned_url("put_object", Params=params, ExpiresIn=PRESIGN_EXPIRY_SECONDS)
 
 
