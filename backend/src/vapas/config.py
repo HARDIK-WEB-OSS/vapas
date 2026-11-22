@@ -47,16 +47,63 @@ class Settings(BaseSettings):
     ollama_url: str | None = None
     ollama_model: str = "qwen2.5:3b"
     llm_daily_call_budget: int = Field(default=6, ge=0, le=100)
+    mail_outbox_dir: Path | None = None
+    mail_backend: Literal["capture", "smtp", "resend"] = "capture"
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = Field(default=587, ge=1, le=65535)
+    smtp_username: str | None = None
+    smtp_password: SecretStr | None = None
+    resend_api_key: SecretStr | None = None
+    email_from: str | None = None
+    sentry_dsn: SecretStr | None = None
+    invite_only: bool = False
+    email_mx_check: bool = True
+    unverified_account_ttl_hours: int = Field(default=48, ge=1, le=720)
+    client_ip_header: str | None = Field(default=None, pattern=r"^[A-Za-z0-9-]{1,64}$")
 
-    @field_validator("s3_endpoint_url", "s3_public_endpoint_url", "migration_database_url", "ollama_url", mode="before")
+    @field_validator(
+        "s3_endpoint_url",
+        "s3_public_endpoint_url",
+        "migration_database_url",
+        "ollama_url",
+        "resend_api_key",
+        "smtp_username",
+        "smtp_password",
+        "email_from",
+        "sentry_dsn",
+        "client_ip_header",
+        mode="before",
+    )
     @classmethod
     def blank_is_none(cls, value: object) -> object:
         return None if value == "" else value
 
-    @field_validator("private_fixtures_dir", mode="before")
+    @field_validator("private_fixtures_dir", "mail_outbox_dir", mode="before")
     @classmethod
     def blank_private_dir_is_none(cls, value: object) -> object:
         return None if value == "" else value
+
+    @model_validator(mode="after")
+    def mail_outbox_only_locally(self) -> Self:
+        if self.mail_outbox_dir is not None and self.app_env not in LOCAL_ENVS:
+            raise ValueError("MAIL_OUTBOX_DIR is only allowed when APP_ENV is local or test")
+        return self
+
+    @model_validator(mode="after")
+    def mx_check_only_off_locally(self) -> Self:
+        if not self.email_mx_check and self.app_env not in LOCAL_ENVS:
+            raise ValueError("EMAIL_MX_CHECK can only be turned off when APP_ENV is local or test")
+        return self
+
+    @model_validator(mode="after")
+    def mail_backend_is_usable(self) -> Self:
+        if self.mail_backend == "capture" and self.app_env not in LOCAL_ENVS:
+            raise ValueError("MAIL_BACKEND=capture is only allowed when APP_ENV is local or test")
+        if self.mail_backend == "smtp" and not (self.smtp_username and self.smtp_password and self.email_from):
+            raise ValueError("MAIL_BACKEND=smtp needs SMTP_USERNAME, SMTP_PASSWORD and EMAIL_FROM")
+        if self.mail_backend == "resend" and not (self.resend_api_key and self.email_from):
+            raise ValueError("MAIL_BACKEND=resend needs RESEND_API_KEY and EMAIL_FROM")
+        return self
 
     @field_validator("private_fixtures_dir")
     @classmethod
