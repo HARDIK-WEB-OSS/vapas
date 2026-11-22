@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 
 from vapas.auth.tokens import InvalidAccessTokenError, decode_access_token
 from vapas.db import repo
+from vapas.security.client_ip import resolve_client_ip
 from vapas.services import Services
 
 bearer = HTTPBearer(auto_error=False)
@@ -25,7 +26,7 @@ def get_services(request: Request) -> Services:
 
 
 def client_ip(request: Request) -> str:
-    return request.client.host if request.client else "unknown"
+    return resolve_client_ip(request, get_services(request).settings.client_ip_header)
 
 
 @dataclass(frozen=True)
@@ -52,5 +53,5 @@ async def current_user(
 
 
 ServicesDep = Annotated[Services, Depends(get_services)]
-CurrentUserDep = Annotated[CurrentUser, Depends(current_user)]
+CurrentUserDep = Annotated[CurrentUser, Depends(current_user, scope="function")]
 ClientIpDep = Annotated[str, Depends(client_ip)]
