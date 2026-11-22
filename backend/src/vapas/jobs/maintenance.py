@@ -26,3 +26,10 @@ async def drop_expired_partitions(ctx: WorkerContext) -> int:
             {"months": ctx.settings.transaction_retention_months},
         )
     return int(dropped or 0)
+
+
+async def delete_unverified_accounts(ctx: WorkerContext, now: datetime | None = None) -> int:
+    cutoff = (now or datetime.now(UTC)) - timedelta(hours=ctx.settings.unverified_account_ttl_hours)
+    async with ctx.db.anonymous() as conn:
+        removed = await conn.scalar(text("SELECT delete_unverified_accounts(:cutoff)"), {"cutoff": cutoff})
+    return int(removed or 0)

@@ -12,14 +12,16 @@ from vapas.jobs import queue
 from vapas.jobs.case_work import process_case_work
 from vapas.jobs.context import WorkerContext
 from vapas.jobs.handlers import HANDLERS
-from vapas.jobs.maintenance import drop_expired_partitions, sweep_raw_files
+from vapas.jobs.maintenance import delete_unverified_accounts, drop_expired_partitions, sweep_raw_files
 from vapas.jobs.outbox import relay
 from vapas.logging_setup import configure_logging
+from vapas.observability import init_error_tracking
 
 log = logging.getLogger(__name__)
 SWEEP_EVERY_SECONDS = 300.0
 RETENTION_EVERY_SECONDS = 86_400.0
 CASE_WORK_EVERY_SECONDS = 3_600.0
+UNVERIFIED_SWEEP_EVERY_SECONDS = 3_600.0
 
 
 async def heartbeat_loop(probes: Mapping[str, Probe], interval_seconds: float, stop: asyncio.Event) -> int:
@@ -89,6 +91,7 @@ async def work_loop(ctx: WorkerContext, stop: asyncio.Event) -> None:
         Periodic(SWEEP_EVERY_SECONDS, sweep_raw_files, "sweep_raw_files"),
         Periodic(RETENTION_EVERY_SECONDS, drop_expired_partitions, "drop_expired_partitions"),
         Periodic(CASE_WORK_EVERY_SECONDS, process_case_work, "case_work"),
+        Periodic(UNVERIFIED_SWEEP_EVERY_SECONDS, delete_unverified_accounts, "delete_unverified_accounts"),
     ]
     while not stop.is_set():
         did_work = False
@@ -128,6 +131,7 @@ async def run_worker(settings: Settings) -> None:
 def main() -> None:
     settings = get_settings()
     configure_logging(settings.log_level)
+    init_error_tracking(settings, "worker")
     with contextlib.suppress(KeyboardInterrupt):
         asyncio.run(run_worker(settings))
 
