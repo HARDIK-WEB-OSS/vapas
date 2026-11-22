@@ -14,6 +14,7 @@ from vapas.rules.loader import load_rulebook
 from vapas.security.user_keys import user_cipher
 
 log = logging.getLogger(__name__)
+REMINDER_ALERT_AFTER_ATTEMPTS = 24
 
 
 async def _process_user(ctx: WorkerContext, user_id: UUID) -> int:
@@ -53,6 +54,10 @@ async def _process_user(ctx: WorkerContext, user_id: UUID) -> int:
                 except Exception as error:
                     log.warning("reminder email failed", extra={"error_type": type(error).__name__})
             await store.mark_reminder(conn, reminder.id, sent)
+            if not sent and reminder.attempts + 1 == REMINDER_ALERT_AFTER_ATTEMPTS:
+                log.error(
+                    "reminder email still unsent", extra={"kind": reminder.kind, "attempts": reminder.attempts + 1}
+                )
             handled += 1
     return handled
 
