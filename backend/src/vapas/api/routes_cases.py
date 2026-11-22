@@ -70,6 +70,11 @@ class EscalateIn(BaseModel):
     in_court_or_other_forum: bool
 
 
+class RecoveredIn(BaseModel):
+    amount_paise: int = Field(gt=0, le=10_000_000_000)
+    on: date
+
+
 class CloseIn(BaseModel):
     reason: str = Field(min_length=2, max_length=300)
 
@@ -97,6 +102,8 @@ class CaseOut(BaseModel):
     filing_deadline_on: date | None
     days_left: int | None
     escalated_on: date | None
+    recovered_paise: int | None
+    recovered_on: date | None
     created_at: datetime
 
 
@@ -144,6 +151,8 @@ async def _out(user: CurrentUser, row: store.CaseRow, services: Services) -> Cas
         filing_deadline_on=facts.deadlines.filing_deadline_on if facts.deadlines else None,
         days_left=days_left(facts, today_ist()),
         escalated_on=row.escalated_on,
+        recovered_paise=row.recovered_paise,
+        recovered_on=row.recovered_on,
         created_at=row.created_at,
     )
 
@@ -334,6 +343,21 @@ async def close_case(case_id: UUID, body: CloseIn, user: CurrentUserDep, service
     out = await _transition(user, services, case_id, lambda f, _: close(f, body.reason))
     await store.set_closed_reason(user.conn, case_id, body.reason)
     return out
+
+
+@router.post("/{case_id}/recovered")
+async def recovered(case_id: UUID, body: RecoveredIn, user: CurrentUserDep, services: ServicesDep) -> CaseOut:
+    row = await _row(user, case_id)
+    if row.state == "draft":
+        raise HTTPException(status.HTTP_409_CONFLICT, {"code": "invalid_state", "message": "send the complaint first"})
+    if body.on > today_ist():
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT, {"code": "date_in_future", "message": "date is in the future"}
+        )
+    await store.set_recovered(user.conn, case_id, body.amount_paise, body.on)
+    payload = {"amount_paise": body.amount_paise, "on": body.on.isoformat()}
+    await store.append_events(user.conn, case_id, user.user_id, [("recovered", payload)])
+    return await _out(user, await _row(user, case_id), services)
 
 
 @router.get("/{case_id}/evidence.pdf")

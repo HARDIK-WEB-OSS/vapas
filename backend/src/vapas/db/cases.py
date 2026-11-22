@@ -30,6 +30,8 @@ class CaseRow:
     escalation_eligible_on: date | None
     filing_deadline_on: date | None
     closed_reason: str | None
+    recovered_paise: int | None
+    recovered_on: date | None
     created_at: datetime
     updated_at: datetime
 
@@ -135,6 +137,13 @@ async def save(conn: AsyncConnection, case_id: UUID, facts: CaseFacts, deadline_
 
 async def set_closed_reason(conn: AsyncConnection, case_id: UUID, reason: str) -> None:
     await conn.execute(text("UPDATE cases SET closed_reason = :r WHERE id = :id"), {"r": reason, "id": case_id})
+
+
+async def set_recovered(conn: AsyncConnection, case_id: UUID, amount_paise: int, on: date) -> None:
+    await conn.execute(
+        text("UPDATE cases SET recovered_paise = :a, recovered_on = :d, updated_at = now() WHERE id = :id"),
+        {"a": amount_paise, "d": on, "id": case_id},
+    )
 
 
 async def append_events(conn: AsyncConnection, case_id: UUID, user_id: UUID, events: Sequence[Event]) -> None:
