@@ -1,0 +1,400 @@
+{
+  "meta": {
+    "title": "VAPAS",
+    "description": "Find late bank reversals and the compensation RBI rules say you are owed."
+  },
+  "nav": {
+    "home": "Home",
+    "guide": "Download guide",
+    "upload": "Upload",
+    "statements": "Statements",
+    "findings": "Findings",
+    "cases": "Complaints",
+    "settings": "Settings",
+    "login": "Log in",
+    "signup": "Sign up",
+    "logout": "Log out",
+    "switchLanguage": "हिन्दी",
+    "menu": "Menu"
+  },
+  "footer": {
+    "notLegalAdvice": "VAPAS is not legal advice. It reads your statement and prepares drafts; you decide what to send.",
+    "privacy": "Privacy policy",
+    "terms": "Terms",
+    "free": "VAPAS is free."
+  },
+  "common": {
+    "loading": "Loading…",
+    "save": "Save",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "yes": "Yes",
+    "no": "No",
+    "back": "Back",
+    "copy": "Copy text",
+    "copied": "Copied",
+    "download": "Download",
+    "retry": "Try again",
+    "date": "Date",
+    "rupees": "Amount (₹)",
+    "notSure": "Not sure",
+    "englishOnly": "Shown in English for now."
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "Could not reach VAPAS. Check your internet connection.",
+    "rate_limited": "Too many attempts. Please wait a little and try again.",
+    "invalid_invite": "This invite code is not valid, already used or expired.",
+    "email_disposable": "Temporary or disposable email addresses cannot be used. Please sign up with an email address you will keep, such as your personal, college or work email.",
+    "email_no_mail_server": "This email domain does not seem to receive email. Please check the address for typos or use another email.",
+    "temporarily_unavailable": "VAPAS is busy for a moment. Please try again in a minute.",
+    "invalid_credentials": "Email or password is not correct.",
+    "invalid_token": "This link has expired or was already used.",
+    "consent_notice_changed": "The privacy notice has changed. Please read it again.",
+    "weak_password": "Choose a stronger password: at least 10 characters, not a common one.",
+    "email_not_verified": "Verify your email first. We sent you a link.",
+    "consent_withdrawn": "You withdrew consent, so VAPAS cannot read statements. Give consent again in Settings.",
+    "password_incorrect": "The password is not correct.",
+    "upload_incomplete": "The upload did not finish. Please try again.",
+    "file_too_large": "The file is larger than 10 MB.",
+    "file_type": "Upload a PDF, CSV, XLS or XLSX statement.",
+    "already_in_case": "One of these findings is already in a complaint.",
+    "mixed_banks": "One complaint can cover findings from one bank only.",
+    "not_actionable": "Only “money owed” and “worth checking” items can go into a complaint.",
+    "letter_not_approved": "Approve the letter first.",
+    "not_eligible": "You cannot escalate yet.",
+    "blocked_clause_10": "The RBI Ombudsman cannot accept a complaint that is already with the Ombudsman, a court or another forum (RB-IOS 2026, Clause 10).",
+    "too_early": "You can escalate only after the waiting period ends or the bank replies unsatisfactorily.",
+    "deadline_passed": "The last date to escalate has passed.",
+    "deadline_unknown": "The deadline could not be calculated for this case.",
+    "date_in_future": "That date is in the future.",
+    "date_order": "These dates are in the wrong order.",
+    "invalid_state": "This step is not possible right now.",
+    "guardrails": "The letter failed a safety check. Please draft it again."
+  },
+  "landing": {
+    "title": "Did your bank refund a failed payment late? It may owe you ₹100 for every day of delay.",
+    "lead": "Upload your bank statement. VAPAS finds failed transactions the bank reversed late, works out the compensation the RBI rules require, and helps you claim it.",
+    "cta": "Check my statement",
+    "login": "I already have an account",
+    "promisesTitle": "Our promises",
+    "promises": [
+      "We never connect to your bank and never touch your money.",
+      "We never send anything to your bank or to RBI. You review and send every complaint yourself.",
+      "Your statement file is deleted within an hour of reading it.",
+      "Every amount comes with the exact RBI rule behind it."
+    ],
+    "howTitle": "How it works",
+    "steps": [
+      "Download your statement from net banking (PDF, CSV or Excel).",
+      "Upload it. VAPAS reads every transaction and checks it against RBI's turnaround-time rules.",
+      "See what you may be owed, with the reason and the rule.",
+      "Approve a ready complaint letter and send it to your bank yourself.",
+      "VAPAS tracks the waiting period and reminds you before the last date to go to the RBI Ombudsman."
+    ],
+    "ruleTitle": "The rule",
+    "rule": "RBI circular DPSS.CO.PD No.629/02.01.014/2019-20 (20 September 2019) sets deadlines for reversing failed transactions and ₹100 per day of delay as compensation, to be paid by the bank on its own. Most people never receive it.",
+    "notLegalAdvice": "This is not legal advice."
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "inviteCode": "Invite code",
+    "inviteHint": "VAPAS is in a small closed trial. Enter the code you were given.",
+    "passwordHint": "At least 10 characters.",
+    "newPassword": "New password",
+    "signupTitle": "Create your account",
+    "signupButton": "Create account",
+    "consentLabel": "I have read the privacy notice and agree that VAPAS may process my statements for the purpose described.",
+    "readNotice": "Read the full privacy notice",
+    "checkEmail": "Check your email. We sent you a link to verify your address.",
+    "loginTitle": "Log in",
+    "loginButton": "Log in",
+    "forgot": "Forgot password?",
+    "noAccount": "New here? Create an account",
+    "verifyTitle": "Verifying your email",
+    "verified": "Your email is verified. You can log in now.",
+    "verifyUnreachable": "Can't reach the server. Your link is still valid; please try again.",
+    "tryAgain": "Try again",
+    "maybeVerified": "This link was already used. If you opened it a moment ago, your email is probably verified already. Try logging in.",
+    "resend": "Send the link again",
+    "resent": "If the email is registered and not verified, a new link is on its way.",
+    "forgotTitle": "Reset your password",
+    "forgotButton": "Send reset link",
+    "resetSent": "If an account exists for this email, a reset link is on its way.",
+    "resetTitle": "Choose a new password",
+    "resetButton": "Change password",
+    "resetDone": "Your password is changed. Log in with the new password.",
+    "missingToken": "This link is incomplete. Open the link from the email again."
+  },
+  "consent": {
+    "title": "Privacy notice",
+    "version": "Version {version}",
+    "giveAgain": "Give consent again",
+    "given": "Consent recorded. VAPAS can read your statements again."
+  },
+  "guide": {
+    "title": "How to download your statement",
+    "lead": "VAPAS needs the statement file from your bank. It never logs in to your bank for you.",
+    "general": [
+      "Log in to your bank's official net banking website or app. Type the address yourself; do not use links from messages.",
+      "Open your savings or current account and find the account statement option.",
+      "Choose the last 12 months. Only transactions from the last 12 months can become claims.",
+      "Download as PDF, CSV or Excel. If the PDF has a password, keep it ready: you will type it during upload and VAPAS never stores it."
+    ],
+    "banksTitle": "Supported banks",
+    "bankNote": "Menu names change from time to time and differ between the website and the app. If you cannot find the statement option, ask your bank's official customer care.",
+    "otherBanks": "Other banks: you can still upload. VAPAS will tell you if it cannot read the layout.",
+    "start": "Upload a statement"
+  },
+  "dashboard": {
+    "title": "Your summary",
+    "found": "Money found",
+    "claimed": "Claimed",
+    "recovered": "Recovered",
+    "foundHint": "Compensation VAPAS calculated from your statements.",
+    "claimedHint": "In complaints you sent to your bank.",
+    "recoveredHint": "Amounts you told us the bank paid.",
+    "verifyBanner": "Verify your email to start. We sent a link to {email}.",
+    "consentBanner": "You withdrew consent, so VAPAS will not read new statements.",
+    "next": "What next",
+    "uploadCta": "Upload a statement",
+    "findingsCta": "See findings",
+    "casesCta": "Track complaints",
+    "notifications": "Updates",
+    "dismiss": "Dismiss"
+  },
+  "upload": {
+    "title": "Upload a statement",
+    "file": "Statement file (PDF, CSV, XLS or XLSX, up to 10 MB)",
+    "password": "PDF password (only if the file has one)",
+    "passwordNote": "Used once to open the file and never stored.",
+    "what": [
+      "The file goes straight to private storage through a link that works for 5 minutes.",
+      "VAPAS reads it, checks that the running balance adds up, and deletes the file within an hour.",
+      "Narrations and reference numbers are stored encrypted with a key only for your account."
+    ],
+    "button": "Upload and analyse",
+    "hashing": "Preparing…",
+    "uploading": "Uploading…",
+    "duplicate": "You already uploaded this file. Showing its status.",
+    "guide": "How to download your statement"
+  },
+  "statements": {
+    "title": "Your statements",
+    "empty": "No statements yet.",
+    "period": "{from} to {to}",
+    "rows": "{rows} transactions read",
+    "status": {
+      "awaiting_upload": "Waiting for upload",
+      "queued": "In queue",
+      "parsing": "Reading",
+      "parsed": "Analysed",
+      "needs_password": "Needs password",
+      "needs_review": "Could not be analysed",
+      "failed": "Failed"
+    },
+    "reconciled": "Balances add up",
+    "passwordButton": "Open with password"
+  },
+  "findings": {
+    "title": "Findings",
+    "empty": "Nothing found yet. Upload a statement to start.",
+    "recomputing": "Updating your findings…",
+    "groups": {
+      "claim": "Money owed",
+      "worth_checking": "Worth checking",
+      "needs_user_input": "Needs your input",
+      "other": "For your information"
+    },
+    "groupHints": {
+      "claim": "The bank reversed these failed transactions after the RBI deadline. The amount is the compensation the rule sets.",
+      "worth_checking": "These look unusual. VAPAS does not calculate an amount for them, but you can ask your bank to check.",
+      "needs_user_input": "Answer a question so VAPAS can decide.",
+      "other": "Older than 12 months, or needs a closer look. Not used for claims."
+    },
+    "level": {
+      "claim": "Money owed",
+      "worth_checking": "Worth checking",
+      "needs_user_input": "Needs your input",
+      "needs_review": "Needs review",
+      "historical": "Older than 12 months",
+      "informational": "Information"
+    },
+    "confidence": {
+      "high": "High confidence",
+      "medium": "Medium confidence",
+      "low": "Low confidence"
+    },
+    "owed": "Compensation",
+    "alreadyPaid": "Already paid: {amount}",
+    "accruing": "Still growing every day until the bank reverses it.",
+    "delay": "{days} days late",
+    "rule": "Rule",
+    "txnDate": "Transaction",
+    "reversalDate": "Reversed",
+    "right": "Looks right",
+    "wrong": "This is wrong",
+    "notSure": "Not sure",
+    "markedNotSure": "Thanks. You said you are not sure about this one.",
+    "feedbackHelp": "Your answer helps us measure how often VAPAS is right. It is stored only with your account.",
+    "markedRight": "You marked this as right.",
+    "markedWrong": "You marked this as wrong. It will not be used.",
+    "undo": "Undo",
+    "inCase": "In a complaint",
+    "select": "Add to complaint",
+    "createCase": "Create complaint ({count})",
+    "questions": {
+      "payee_was_merchant": "Was this a payment to a shop or business?",
+      "payment_failed": "Did this payment fail (the shop or person did not get the money)?",
+      "mandate_revoked": "Did you cancel this auto-debit (mandate) before it was taken?"
+    },
+    "revokedOn": "Date you cancelled the mandate",
+    "proof": "I have proof of cancelling (email, letter or app screen).",
+    "send": "Send answer"
+  },
+  "cases": {
+    "title": "Your complaints",
+    "empty": "No complaints yet. Choose findings and create one.",
+    "state": {
+      "draft": "Draft",
+      "sent_to_bank": "Sent to bank",
+      "awaiting_reply": "Waiting for the bank",
+      "resolved": "Resolved by the bank",
+      "escalation_eligible": "Can go to RBI Ombudsman",
+      "escalated": "With the RBI Ombudsman",
+      "closed": "Closed",
+      "expired": "Time to escalate has passed"
+    },
+    "daysLeft": "{days} days left to go to the RBI Ombudsman",
+    "lastDate": "Last date: {date}",
+    "eligibleOn": "You can escalate from {date} if the bank does not resolve it.",
+    "noDeadline": "The bank received this before 1 July 2026, so VAPAS cannot calculate the Ombudsman deadline. Please check it yourself.",
+    "findingsCount": "{count} items",
+    "open": "Open",
+    "bankLetter": "Letter to your bank",
+    "cmsLetter": "Complaint text for the RBI Ombudsman",
+    "draftLetter": "Prepare the letter",
+    "polish": "Improve the wording (checked automatically, facts never change)",
+    "approveTitle": "Your details for the letter",
+    "approveNote": "Read the letter. These details are added to it and kept encrypted. VAPAS does not send it.",
+    "name": "Full name",
+    "last4": "Last 4 digits of your account number",
+    "contact": "Phone or email for the bank to reply",
+    "bankName": "Bank name (if not filled in)",
+    "approve": "Approve letter",
+    "approved": "Approved",
+    "sendSteps": "Send this letter to your bank yourself: by email to its grievance address, through net banking, or at the branch. Keep proof of sending.",
+    "sentOn": "Date you sent it",
+    "markSent": "I sent it",
+    "receivedOn": "Date the bank received it (acknowledgement date, or the sent date for email)",
+    "markReceived": "Save",
+    "replyTitle": "The bank replied",
+    "replyOn": "Reply date",
+    "resolvedQuestion": "Did the reply solve your complaint?",
+    "saveReply": "Save reply",
+    "communicationTitle": "Another message from the bank",
+    "communicationOn": "Date of the message",
+    "saveCommunication": "Save",
+    "escalateTitle": "Go to the RBI Ombudsman",
+    "escalateSteps": [
+      "Open https://cms.rbi.org.in and choose to file a complaint.",
+      "Choose your bank and paste the complaint text below.",
+      "Attach your complaint to the bank, any reply, and the evidence pack.",
+      "Submit it yourself and note the complaint number. VAPAS never files for you."
+    ],
+    "withOmbudsman": "Is this complaint already with the RBI Ombudsman?",
+    "inCourt": "Is it already before a court, tribunal, arbitrator or any other forum?",
+    "filedOn": "Date you filed on cms.rbi.org.in",
+    "markEscalated": "I filed it",
+    "closeTitle": "Close this complaint",
+    "closeReason": "Why are you closing it?",
+    "close": "Close",
+    "recoveredTitle": "Did the bank pay you?",
+    "recoveredOn": "Date the money arrived",
+    "saveRecovered": "Save amount",
+    "recoveredShown": "Recovered {amount} on {date}",
+    "evidence": "Download evidence pack (PDF)",
+    "timeline": "Timeline",
+    "expiredNote": "Under RB-IOS 2026 Clause 10(1)(g), a complaint filed after the last date is not accepted. You can still follow up with your bank."
+  },
+  "events": {
+    "created": "Complaint created",
+    "letter_drafted": "Letter prepared",
+    "letter_approved": "Letter approved",
+    "sent_to_bank": "Sent to bank",
+    "awaiting_reply": "Bank received it",
+    "deadline_set": "Deadlines calculated",
+    "deadline_unknown": "Deadline could not be calculated",
+    "escalation_eligible": "Can go to RBI Ombudsman",
+    "unsatisfactory_reply": "Unsatisfactory reply",
+    "bank_communication": "Message from bank",
+    "resolved": "Resolved by the bank",
+    "escalated": "Filed with RBI Ombudsman",
+    "closed": "Closed",
+    "expired": "Time to escalate passed",
+    "recovered": "Money recovered"
+  },
+  "settings": {
+    "title": "Settings",
+    "account": "Account",
+    "language": "Language for letters and emails",
+    "exportTitle": "Download my data",
+    "exportNote": "A JSON file with everything VAPAS holds about you.",
+    "exportButton": "Download",
+    "consentTitle": "Consent",
+    "consentActive": "VAPAS may read your statements.",
+    "consentInactive": "Consent withdrawn. VAPAS will not read new statements.",
+    "withdraw": "Withdraw consent",
+    "deleteTitle": "Delete my account",
+    "deleteNote": "This erases your account, statements, findings, complaints and letters. It cannot be undone. Download your data first if you need it.",
+    "deleteButton": "Delete everything",
+    "deleted": "Your account and data are deleted."
+  },
+  "privacy": {
+    "title": "Privacy policy",
+    "draft": "Draft. This policy will be reviewed before the public pilot.",
+    "sections": [
+      {
+        "h": "Who we are",
+        "p": "VAPAS (Verified Automated Payment Audit System) is a free tool that reads bank statements you upload and finds refunds your bank reversed late. For your personal data, VAPAS is a Data Fiduciary under the Digital Personal Data Protection Act, 2023."
+      },
+      {
+        "h": "What we collect",
+        "p": "Your email, a hash of your password, the statements you upload, and the complaints you prepare. We never ask for your net banking login and never connect to your bank."
+      },
+      {
+        "h": "Why we use it",
+        "p": "Only to find late reversals and similar items, calculate compensation under RBI rules, and help you prepare complaints. No advertising, no sale of data, no training of AI models on your data."
+      },
+      {
+        "h": "How we protect it",
+        "p": "Statement files are deleted within an hour of reading. Narrations, reference numbers, findings and letters are encrypted with a key unique to your account. Database rules stop one user from reading another user's data. Statement text is never sent to an outside AI service."
+      },
+      {
+        "h": "How long we keep it",
+        "p": "Transactions are kept for 13 months from their date. Findings, complaints and letters are kept until you delete them or your account. Database backups are kept for at most 7 days."
+      },
+      {
+        "h": "Your rights",
+        "p": "You can download all your data, withdraw consent, and delete your account at any time from Settings. If you withdraw consent, we stop reading new statements."
+      },
+      {
+        "h": "If something goes wrong",
+        "p": "If a data breach affects you, we will tell you and the Data Protection Board of India as the law requires."
+      }
+    ]
+  },
+  "terms": {
+    "title": "Terms of use",
+    "draft": "Draft. These terms will be reviewed before the public pilot.",
+    "items": [
+      "VAPAS is free.",
+      "VAPAS is not legal advice and not a law firm. It points out items in your statement and prepares drafts based on published RBI rules. You decide whether and what to send.",
+      "VAPAS never contacts your bank or RBI and never files anything for you. Any compensation is paid by your bank directly into your account.",
+      "Findings can be wrong, for example if a statement is read incorrectly. Check every letter before you send it.",
+      "Upload only your own statements, or statements you have written permission to upload.",
+      "You can stop using VAPAS and delete your data at any time."
+    ]
+  }
+}
