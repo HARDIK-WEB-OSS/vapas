@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+from vapas.config import Settings
 from vapas.security.private_path_guard import find_code_root
 
 BASE_ENV = {
@@ -27,6 +28,7 @@ def repo_root() -> Path:
 def base_env(monkeypatch: pytest.MonkeyPatch) -> dict[str, str]:
     for key, value in BASE_ENV.items():
         monkeypatch.setenv(key, value)
-    for key in ("PRIVATE_FIXTURES_DIR", "CLAIM_LOOKBACK_MONTHS", "S3_REGION", "LOG_LEVEL", "MIGRATION_DATABASE_URL"):
-        monkeypatch.delenv(key, raising=False)
+    for field in Settings.model_fields:
+        if field.upper() not in BASE_ENV:
+            monkeypatch.delenv(field.upper(), raising=False)
     return dict(BASE_ENV)
