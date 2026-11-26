@@ -78,3 +78,14 @@ Follow-up (22 Nov 2026): the failure seen at test 13 of the stopped run was `tes
 Follow-up 2 (22 Nov 2026): weekly workflow made read-only (`--check` mode, single issue on a difference). Unit tests for the domain list and refresh script: 37 passed (4 new check-mode tests: unchanged, changed with nothing written, would-be-refused list reported, unreachable fails). Full integration suite still on hold.
 
 Follow-up 3 (22 Nov 2026): `test_login_is_rate_limited_per_ip` is deterministic (frozen-refill limit in the test, exactly 20 x 401 then 429). `test_auth_flow.py` 18 passed; the same test with a 1.6 s delay per login passed in 37 s. Full integration suite still on hold.
+
+## Layout inspector (23 Nov 2026)
+
+| Check | Result |
+|---|---|
+| `scripts/inspect_layout.py` | helper for pending real-data item 7; header output shows only known header words (anything else, including names, account numbers and emails, prints as `?`) |
+| Lint / format / types | ruff clean, formatted, mypy clean |
+| `tests/unit/test_inspect_layout.py` | 9 passed: header lines recognised, transaction rows and prose not taken as headers, masking leaves only header words, date shape hides characters, a file inside the repository is refused |
+| Real statements | not run (owner step, item 7) |
+| Test isolation fix | `test_real_senders_need_their_credentials[smtp]` failed because `SMTP_USERNAME`/`SMTP_PASSWORD` were set in the shell; `base_env` now clears every `Settings` field it does not set |
+| Unit + golden + regression | 427 passed, 1 skipped |
