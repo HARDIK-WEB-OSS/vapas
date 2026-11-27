@@ -17,6 +17,6 @@ def test_outbox_writes_one_file_per_message(tmp_path: Path) -> None:
     assert json.loads(files[0].read_text(encoding="utf-8"))["body"] == "link #token=abc"
 
 
-def test_outbox_is_refused_outside_local(tmp_path: Path) -> None:
+def test_outbox_is_refused_outside_local(base_env: dict[str, str], tmp_path: Path) -> None:
     with pytest.raises(ValidationError, match="MAIL_OUTBOX_DIR"):
-        Settings(app_env="production", mail_outbox_dir=tmp_path)
+        Settings(_env_file=None, app_env="production", mail_outbox_dir=tmp_path)
