@@ -102,6 +102,52 @@ def test_card_claims(channel: Channel, rule_id: str) -> None:
     )
 
 
+@pytest.mark.parametrize(
+    ("channel", "narration"),
+    [
+        (Channel.POS, "POS VISA DIRECT TRF 4321"),
+        (Channel.ECOM, "ECOM CARD TO CARD TRANSFER"),
+        (Channel.POS, "POS MASTERCARD MONEYSEND"),
+        (Channel.ECOM, "ECOM C2C FUND TRANSFER"),
+    ],
+)
+def test_card_to_card_transfer_is_credit_push_and_never_carries_an_amount(channel: Channel, narration: str) -> None:
+    debit, credit = pair(channel, date(2026, 5, 10), date(2026, 5, 17), narration=narration)
+    finding = only(run([debit, credit]))
+    assert (finding.level, finding.rule_id, finding.amount_owed_paise, finding.letter_scope) == (
+        Level.INFORMATIONAL,
+        "rbi.tat.card_to_card",
+        None,
+        "reversal_only",
+    )
+
+
+def test_failed_card_to_card_transfer_is_never_a_claim() -> None:
+    debit = txn(date(2026, 9, 1), D, 150_000, Channel.POS, Kind.PAYMENT, "POS VISA DIRECT FAILED", (b"r9",))
+    answers = UserAnswers(payment_failed={debit.key: True})
+    finding = only(run([debit], answers), Detector.UNREVERSED_FAILED)
+    assert (finding.level, finding.rule_id, finding.amount_owed_paise) == (
+        Level.WORTH_CHECKING,
+        "rbi.tat.card_to_card",
+        None,
+    )
+
+
+def test_historical_upi_reversal_does_not_ask_the_merchant_question() -> None:
+    debit, credit = pair(Channel.UPI, date(2025, 8, 1), date(2025, 8, 20), narration="UPI/DR/SWIGGY")
+    finding = only(run([debit, credit]))
+    assert (finding.level, finding.question, finding.amount_owed_paise) == (Level.HISTORICAL, None, None)
+
+
+def test_upi_in_a_relaxation_window_needs_review_without_a_question() -> None:
+    day = date(2021, 6, 1)
+    debit, credit = pair(Channel.UPI, day, day + timedelta(days=20), narration="UPI/DR/SWIGGY")
+    findings = detect([debit, credit], UserAnswers(), RULES, day + timedelta(days=60), 12, str)
+    finding = only(findings)
+    assert (finding.level, finding.question) == (Level.NEEDS_REVIEW, None)
+    assert "relaxation" in finding.why
+
+
 def test_upi_without_answer_asks_whether_the_payee_was_a_merchant() -> None:
     debit, credit = pair(Channel.UPI, date(2026, 6, 1), date(2026, 6, 10), narration="UPI/DR/SWIGGY")
     finding = only(run([debit, credit]))

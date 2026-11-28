@@ -21,6 +21,9 @@ ASK_ROUTES: dict[Channel, tuple[str, str]] = {
     Channel.AEPS: ("rbi.tat.aeps_merchant", "rbi.tat.aeps_not_credited"),
 }
 CREDIT_PUSH_ROUTES: dict[Channel, str] = {Channel.IMPS: "rbi.tat.imps_not_credited"}
+CARD_CHANNELS = frozenset({Channel.POS, Channel.ECOM})
+CARD_TO_CARD = re.compile(r"(?i)\b(CARD\s*TO\s*CARD|C2C|VISA\s*DIRECT|MONEY\s*SEND)\b")
+CARD_TO_CARD_RULE = "rbi.tat.card_to_card"
 INTERNATIONAL = re.compile(r"(?i)\b(INTL|INTERNATIONAL|FOREIGN|CROSS\s*BORDER|USD|EUR|GBP|AED|SGD)\b")
 VALUE_DATE_TOLERANCE_DAYS = 1
 AEPS_CASH_WITHDRAWAL = re.compile(r"(?i)\b(CASH\s+(WITHDRAWAL|WDL|WD)|CW)\b")
@@ -56,6 +59,8 @@ def merchant_note(chosen: Route) -> str:
 def route(debit: Txn, answers: UserAnswers) -> Route | None:
     if debit.channel is Channel.AEPS and AEPS_CASH_WITHDRAWAL.search(debit.narration):
         return Route(AEPS_CASH_WITHDRAWAL_RULE, None)
+    if debit.channel in CARD_CHANNELS and CARD_TO_CARD.search(debit.narration):
+        return Route(CARD_TO_CARD_RULE, None)
     if debit.channel in CLAIM_ROUTES:
         return Route(CLAIM_ROUTES[debit.channel], None)
     if debit.channel in ASK_ROUTES:
@@ -185,6 +190,46 @@ def assess(match: Match, ctx: Context) -> Finding | None:
             "(Annex General Instruction 1(a)), so nothing is owed to you.",
         )
     potential = compensation_for(rule.per_day_inr or 0, delay)
+    pending_question = chosen.question is not None
+    conditional = (
+        " Compensation would apply only if this was a payment to a shop or business." if pending_question else ""
+    )
+    held_facts: dict[str, object] = {} if pending_question else {"potential_paise": potential}
+    blocked = blocked_reason(debit, day, ambiguous, ctx)
+    if blocked is not None:
+        return _finding(
+            Detector.LATE_REVERSAL,
+            Level.NEEDS_REVIEW,
+            Confidence.LOW,
+            rule,
+            debit.key,
+            reversal_keys,
+            day,
+            received,
+            delay,
+            None,
+            0,
+            timing + " " + blocked + conditional,
+            facts=held_facts,
+        )
+    if day < ctx.lookback_start:
+        return _finding(
+            Detector.LATE_REVERSAL,
+            Level.HISTORICAL,
+            Confidence.MEDIUM,
+            rule,
+            debit.key,
+            reversal_keys,
+            day,
+            received,
+            delay,
+            None,
+            0,
+            timing
+            + " This is older than the claim window VAPAS uses, so it is shown for information only."
+            + conditional,
+            facts=held_facts,
+        )
     if chosen.question is not None:
         return _finding(
             Detector.LATE_REVERSAL,
@@ -201,39 +246,6 @@ def assess(match: Match, ctx: Context) -> Finding | None:
             timing + " Was this a payment to a shop or business? If yes, compensation applies; "
             "if it was a transfer to a person, it does not.",
             question=chosen.question,
-            facts={"potential_paise": potential},
-        )
-    blocked = blocked_reason(debit, day, ambiguous, ctx)
-    if blocked is not None:
-        return _finding(
-            Detector.LATE_REVERSAL,
-            Level.NEEDS_REVIEW,
-            Confidence.LOW,
-            rule,
-            debit.key,
-            reversal_keys,
-            day,
-            received,
-            delay,
-            None,
-            0,
-            timing + " " + blocked,
-            facts={"potential_paise": potential},
-        )
-    if day < ctx.lookback_start:
-        return _finding(
-            Detector.LATE_REVERSAL,
-            Level.HISTORICAL,
-            Confidence.MEDIUM,
-            rule,
-            debit.key,
-            reversal_keys,
-            day,
-            received,
-            delay,
-            None,
-            0,
-            timing + " This is older than the claim window VAPAS uses, so it is shown for information only.",
             facts={"potential_paise": potential},
         )
     paid = already_paid(match, ctx.compensation_credits)
