@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from vapas.config import Settings
 from vapas.db.session import Database
 from vapas.health import Dependencies
-from vapas.llm_gateway.gateway import LlmGateway, OllamaProvider
+from vapas.llm_gateway.gateway import LlmGateway, gateway_for
 from vapas.mail.sender import EmailSender, create_email_sender
 from vapas.security.crypto import KeyRing
 
@@ -26,8 +26,7 @@ class WorkerContext:
     def from_settings(cls, settings: Settings, gateway: LlmGateway | None = None) -> WorkerContext:
         dependencies = Dependencies.from_settings(settings)
         if gateway is None:
-            provider = OllamaProvider(settings.ollama_url, settings.ollama_model) if settings.ollama_url else None
-            gateway = LlmGateway(provider, settings.llm_daily_call_budget)
+            gateway = gateway_for(settings, settings.llm_fallback_enabled)
         return cls(
             settings=settings,
             dependencies=dependencies,

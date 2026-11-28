@@ -137,3 +137,61 @@ def test_api_docs_are_hidden_outside_local(base_env: dict[str, str], monkeypatch
     assert (app.docs_url, app.redoc_url, app.openapi_url) == (None, None, None)
     monkeypatch.setenv("APP_ENV", "local")
     assert create_app(load()).docs_url == "/docs"
+
+
+def test_llm_features_and_kill_switch_are_off_by_default(base_env: dict[str, str]) -> None:
+    settings = load()
+    assert (settings.llm_fallback_enabled, settings.letter_polish_enabled, settings.kill_switch) == (
+        False,
+        False,
+        False,
+    )
+
+
+@pytest.mark.parametrize("env", ["staging", "production"])
+def test_llm_fallback_is_refused_outside_local(
+    base_env: dict[str, str], monkeypatch: pytest.MonkeyPatch, env: str
+) -> None:
+    use_production(monkeypatch, env)
+    monkeypatch.setenv("LLM_FALLBACK_ENABLED", "true")
+    with pytest.raises(ValidationError, match="LLM_FALLBACK_ENABLED"):
+        load()
+
+
+def test_kill_switch_can_be_turned_on_in_production(base_env: dict[str, str], monkeypatch: pytest.MonkeyPatch) -> None:
+    use_production(monkeypatch)
+    monkeypatch.setenv("KILL_SWITCH", "true")
+    assert load().kill_switch is True
+
+
+def test_custom_client_ip_header_outside_local_needs_the_proxy_secret(
+    base_env: dict[str, str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    use_production(monkeypatch)
+    monkeypatch.setenv("CLIENT_IP_HEADER", "X-Vapas-Client-IP")
+    with pytest.raises(ValidationError, match="PROXY_SHARED_SECRET"):
+        load()
+    monkeypatch.setenv("PROXY_SHARED_SECRET", "p" * 40)
+    assert load().client_ip_header == "X-Vapas-Client-IP"
+
+
+def test_fly_client_ip_needs_no_proxy_secret(base_env: dict[str, str], monkeypatch: pytest.MonkeyPatch) -> None:
+    use_production(monkeypatch)
+    monkeypatch.setenv("CLIENT_IP_HEADER", "Fly-Client-IP")
+    assert load().proxy_shared_secret is None
+
+
+def test_short_proxy_secret_is_refused(base_env: dict[str, str], monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("PROXY_SHARED_SECRET", "short")
+    with pytest.raises(ValidationError):
+        load()
+
+
+@pytest.mark.parametrize(("path", "valid"), [("/auth", True), ("/api/auth", True), ("auth", False), ("/a b", False)])
+def test_refresh_cookie_path(base_env: dict[str, str], monkeypatch: pytest.MonkeyPatch, path: str, valid: bool) -> None:
+    monkeypatch.setenv("REFRESH_COOKIE_PATH", path)
+    if valid:
+        assert load().refresh_cookie_path == path
+    else:
+        with pytest.raises(ValidationError):
+            load()

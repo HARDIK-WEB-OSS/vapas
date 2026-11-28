@@ -12,6 +12,7 @@ from vapas.security.private_path_guard import ensure_outside_code_root
 AppEnv = Literal["local", "test", "staging", "production"]
 LOCAL_ENVS = frozenset({"local", "test"})
 LOCAL_ONLY_MARKERS = ("local-only", "change-me")
+FLY_CLIENT_IP = "Fly-Client-IP"
 
 
 class Settings(BaseSettings):
@@ -59,6 +60,11 @@ class Settings(BaseSettings):
     invite_only: bool = False
     email_mx_check: bool = True
     unverified_account_ttl_hours: int = Field(default=48, ge=1, le=720)
+    llm_fallback_enabled: bool = False
+    letter_polish_enabled: bool = False
+    kill_switch: bool = False
+    proxy_shared_secret: SecretStr | None = Field(default=None, min_length=32)
+    refresh_cookie_path: str = Field(default="/auth", pattern=r"^/[A-Za-z0-9/_-]*$")
     client_ip_header: str | None = Field(default=None, pattern=r"^[A-Za-z0-9-]{1,64}$")
 
     @field_validator(
@@ -72,6 +78,7 @@ class Settings(BaseSettings):
         "email_from",
         "sentry_dsn",
         "client_ip_header",
+        "proxy_shared_secret",
         mode="before",
     )
     @classmethod
@@ -93,6 +100,19 @@ class Settings(BaseSettings):
     def mx_check_only_off_locally(self) -> Self:
         if not self.email_mx_check and self.app_env not in LOCAL_ENVS:
             raise ValueError("EMAIL_MX_CHECK can only be turned off when APP_ENV is local or test")
+        return self
+
+    @model_validator(mode="after")
+    def custom_ip_header_needs_the_proxy_secret(self) -> Self:
+        custom = self.client_ip_header is not None and self.client_ip_header != FLY_CLIENT_IP
+        if custom and self.proxy_shared_secret is None and self.app_env not in LOCAL_ENVS:
+            raise ValueError("CLIENT_IP_HEADER other than Fly-Client-IP needs PROXY_SHARED_SECRET")
+        return self
+
+    @model_validator(mode="after")
+    def llm_fallback_only_locally(self) -> Self:
+        if self.llm_fallback_enabled and self.app_env not in LOCAL_ENVS:
+            raise ValueError("LLM_FALLBACK_ENABLED is only allowed when APP_ENV is local or test")
         return self
 
     @model_validator(mode="after")

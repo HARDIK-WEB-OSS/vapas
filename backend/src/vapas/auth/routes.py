@@ -3,14 +3,13 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Cookie, Response, status
 from pydantic import BaseModel, EmailStr, Field
 
-from vapas.auth.deps import ClientIpDep, CurrentUserDep, ServicesDep
+from vapas.auth.deps import ClientIpDep, CurrentUserDep, IntakeOpen, ServicesDep
 from vapas.auth.invites import MAX_CODE_LENGTH
 from vapas.auth.passwords import MAX_PASSWORD_LENGTH
 from vapas.auth.service import Grant, InvalidTokenError
 from vapas.config import Settings
 
 REFRESH_COOKIE = "vapas_refresh"
-REFRESH_COOKIE_PATH = "/auth"
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -61,18 +60,22 @@ def _set_refresh_cookie(response: Response, settings: Settings, grant: Grant) ->
         httponly=True,
         secure=settings.secure_cookies,
         samesite="strict",
-        path=REFRESH_COOKIE_PATH,
+        path=settings.refresh_cookie_path,
     )
     return TokenOut(access_token=grant.access_token, expires_in=grant.expires_in)
 
 
-def _clear_refresh_cookie(response: Response, settings: Settings) -> None:
+def clear_refresh_cookie(response: Response, settings: Settings) -> None:
     response.delete_cookie(
-        REFRESH_COOKIE, path=REFRESH_COOKIE_PATH, httponly=True, secure=settings.secure_cookies, samesite="strict"
+        REFRESH_COOKIE,
+        path=settings.refresh_cookie_path,
+        httponly=True,
+        secure=settings.secure_cookies,
+        samesite="strict",
     )
 
 
-@router.post("/signup", status_code=status.HTTP_202_ACCEPTED)
+@router.post("/signup", status_code=status.HTTP_202_ACCEPTED, dependencies=[IntakeOpen])
 async def signup(body: SignupIn, services: ServicesDep, ip: ClientIpDep) -> Status:
     await services.auth.signup(
         body.email, body.password, body.consent_notice_version, body.locale, ip, body.invite_code
@@ -114,7 +117,7 @@ async def refresh(
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(response: Response, user: CurrentUserDep, services: ServicesDep, ip: ClientIpDep) -> None:
     await services.auth.logout(user.conn, user.user_id, user.session_id, ip)
-    _clear_refresh_cookie(response, services.settings)
+    clear_refresh_cookie(response, services.settings)
 
 
 @router.post("/password-reset/request", status_code=status.HTTP_202_ACCEPTED)

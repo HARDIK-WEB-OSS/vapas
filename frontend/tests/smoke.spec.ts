@@ -36,11 +36,17 @@ for (const path of ["/en", "/hi", "/en/guide", "/en/signup", "/en/login", "/hi/p
   });
 }
 
+function expectedConnectSrc(): string {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
+  const apiOrigin = apiUrl.startsWith("/") ? null : new URL(apiUrl).origin;
+  return ["connect-src 'self'", apiOrigin, "http://127.0.0.1:8333;"].filter(Boolean).join(" ");
+}
+
 test("pages are served with security headers", async ({ request }) => {
   const response = await request.get("/en");
   const headers = response.headers();
   expect(headers["x-frame-options"]).toBe("DENY");
   expect(headers["x-content-type-options"]).toBe("nosniff");
   expect(headers["content-security-policy"]).toContain("frame-ancestors 'none'");
-  expect(headers["content-security-policy"]).toContain("connect-src 'self' http://127.0.0.1:8000 http://127.0.0.1:8333");
+  expect(headers["content-security-policy"]).toContain(expectedConnectSrc());
 });

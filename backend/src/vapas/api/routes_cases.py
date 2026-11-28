@@ -236,7 +236,9 @@ async def draft_letter(case_id: UUID, body: LetterIn, user: CurrentUserDep, serv
             status.HTTP_500_INTERNAL_SERVER_ERROR, {"code": "template_failed", "problems": result.problems}
         )
     text, polished, note = template, False, "template"
-    if body.polish:
+    if body.polish and not services.settings.letter_polish_enabled:
+        note = "polish disabled"
+    elif body.polish:
         charge = partial(consume_budget, user.conn, user.user_id, services.gateway.daily_limit)
         outcome = await polish(template, letter_facts, body.kind, services.gateway, charge)
         text, polished, note = outcome.text, outcome.polished, outcome.note

@@ -14,6 +14,7 @@ from vapas.auth.service import (
     InvalidTokenError,
     RateLimitedError,
 )
+from vapas.security.kill_switch import ServicePausedError
 from vapas.security.ratelimit import RateLimiterUnavailableError
 
 log = logging.getLogger(__name__)
@@ -64,7 +65,12 @@ async def weak_password(_: Request, error: Exception) -> JSONResponse:
     return _error(status.HTTP_422_UNPROCESSABLE_CONTENT, "weak_password", str(error))
 
 
+async def service_paused(_: Request, __: Exception) -> JSONResponse:
+    return _error(status.HTTP_503_SERVICE_UNAVAILABLE, "service_paused", "New signups and uploads are paused.")
+
+
 def register_error_handlers(app: FastAPI) -> None:
+    app.add_exception_handler(ServicePausedError, service_paused)
     app.add_exception_handler(RateLimitedError, rate_limited)
     app.add_exception_handler(RateLimiterUnavailableError, limiter_down)
     app.add_exception_handler(OperationalError, database_down)

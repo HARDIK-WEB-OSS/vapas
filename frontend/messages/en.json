@@ -47,6 +47,7 @@
     "invalid_invite": "This invite code is not valid, already used or expired.",
     "email_disposable": "Temporary or disposable email addresses cannot be used. Please sign up with an email address you will keep, such as your personal, college or work email.",
     "email_no_mail_server": "This email domain does not seem to receive email. Please check the address for typos or use another email.",
+    "service_paused": "New signups and uploads are paused for a short while. Your existing findings and cases are still available. Please try again later.",
     "temporarily_unavailable": "VAPAS is busy for a moment. Please try again in a minute.",
     "invalid_credentials": "Email or password is not correct.",
     "invalid_token": "This link has expired or was already used.",

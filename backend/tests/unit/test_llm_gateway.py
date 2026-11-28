@@ -4,15 +4,17 @@ from typing import Any
 import httpx
 import pytest
 
+from vapas.config import Settings
 from vapas.ingest.llm_fallback import FallbackRejectedError, LayoutMapping, build_prompt, layout_from_mapping
 from vapas.ingest.model import FileKind, UnknownLayoutError
 from vapas.ingest.parse import parse_document
 from vapas.ingest.reconcile import reconcile
 from vapas.jobs.queue import backoff
 from vapas.llm_gateway.circuit_breaker import CircuitBreaker
-from vapas.llm_gateway.gateway import LlmGateway, LlmUnavailableError, SensitiveDataBlockedError
+from vapas.llm_gateway.gateway import LlmGateway, LlmUnavailableError, SensitiveDataBlockedError, gateway_for
 from vapas.security.redact import find_sensitive
 
+OLLAMA = "http://127.0.0.1:11434"
 UNKNOWN_CSV = (
     b"Mystery Bank\n"
     b"Customer RAVI KUMAR ravi.kumar@example.in +91 9876543210 PAN ABCDE1234F\n"
@@ -142,3 +144,15 @@ def test_backoff_grows() -> None:
 
 def test_sensitive_block_error_has_a_code() -> None:
     assert SensitiveDataBlockedError.code == "llm_blocked_sensitive_data"
+
+
+@pytest.mark.parametrize(
+    ("enabled", "url", "available"), [(False, OLLAMA, False), (True, None, False), (True, OLLAMA, True)]
+)
+def test_gateway_has_a_model_only_when_the_feature_is_on_and_a_url_is_set(
+    base_env: dict[str, str], monkeypatch: pytest.MonkeyPatch, enabled: bool, url: str | None, available: bool
+) -> None:
+    if url:
+        monkeypatch.setenv("OLLAMA_URL", url)
+    settings = Settings(_env_file=None)
+    assert gateway_for(settings, enabled=enabled).available is available

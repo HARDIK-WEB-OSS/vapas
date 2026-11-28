@@ -21,7 +21,8 @@ const appUrl = env.DATABASE_URL;
 const workerUrl = appUrl.replace(`vapas_app:${env.APP_DB_PASSWORD}@`, `vapas_worker:${env.WORKER_DB_PASSWORD}@`);
 if (workerUrl === appUrl) throw new Error("could not derive the worker database URL from .env");
 
-const shared = { ...process.env, MAIL_BACKEND: "capture", EMAIL_MX_CHECK: "false", MAIL_OUTBOX_DIR: outbox, PUBLIC_APP_URL: "http://127.0.0.1:3000" };
+const shared = { ...process.env, MAIL_BACKEND: "capture", EMAIL_MX_CHECK: "false", MAIL_OUTBOX_DIR: outbox, PUBLIC_APP_URL: "http://127.0.0.1:3000", PROXY_SHARED_SECRET: process.env.E2E_PROXY_SECRET, CLIENT_IP_HEADER: "X-Vapas-Client-IP", REFRESH_COOKIE_PATH: "/api/auth" };
+if (!shared.PROXY_SHARED_SECRET) throw new Error("E2E_PROXY_SECRET is not set");
 const children = [
   spawn("uv", ["run", "uvicorn", "--factory", "vapas.main:create_app", "--host", "127.0.0.1", "--port", "8000"], {
     cwd: backendDir,

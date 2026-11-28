@@ -19,11 +19,17 @@ from vapas.logging_setup import configure_logging
 from vapas.observability import init_error_tracking
 from vapas.security.api_limits import ApiLimiter, api_limits_middleware
 from vapas.security.http_guards import BodySizeLimitMiddleware, SecurityHeadersMiddleware
+from vapas.security.kill_switch import intake_state
+from vapas.security.proxy_guard import ProxySecretMiddleware
 from vapas.services import Services
 
 
 class Liveness(BaseModel):
     status: str
+
+
+class Intake(BaseModel):
+    intake: str
 
 
 class Readiness(BaseModel):
@@ -78,6 +84,9 @@ def create_app(settings: Settings | None = None, probes: Mapping[str, Probe] | N
             allow_headers=["Authorization", "Content-Type"],
             max_age=600,
         )
+    if active is not None and probes is None:
+        secret = active.proxy_shared_secret
+        app.add_middleware(ProxySecretMiddleware, secret=secret.get_secret_value() if secret else None)
     app.add_middleware(SecurityHeadersMiddleware, https_only=active is not None and active.secure_cookies)
     register_error_handlers(app)
     app.include_router(auth_router)
@@ -91,6 +100,10 @@ def create_app(settings: Settings | None = None, probes: Mapping[str, Probe] | N
     @app.get("/health")
     async def health() -> Liveness:
         return Liveness(status="ok")
+
+    @app.get("/intake")
+    async def intake(request: Request) -> Intake:
+        return Intake(intake=intake_state(request.app.state.services.settings.kill_switch))
 
     @app.get("/ready")
     async def ready(response: Response) -> Readiness:

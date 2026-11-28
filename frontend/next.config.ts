@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
-const apiOrigin = new URL(process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000").origin;
+const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
+const apiOrigin = apiUrl.startsWith("/") ? "" : new URL(apiUrl).origin;
 const uploadOrigin = new URL(process.env.NEXT_PUBLIC_UPLOAD_ORIGIN ?? "http://127.0.0.1:8333").origin;
 
 const contentSecurityPolicy = [
@@ -9,7 +10,7 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self'",
-  `connect-src 'self' ${apiOrigin} ${uploadOrigin}`,
+  `connect-src ${["'self'", apiOrigin, uploadOrigin].filter(Boolean).join(" ")}`,
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

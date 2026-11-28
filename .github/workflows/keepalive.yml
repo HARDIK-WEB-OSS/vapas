@@ -1,0 +1,20 @@
+name: keepalive
+
+on:
+  schedule:
+    - cron: "30 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ready:
+    if: vars.VAPAS_APP_URL != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Production answers /ready, which queries Postgres, Redis and R2
+        env:
+          APP_URL: ${{ vars.VAPAS_APP_URL }}
+        run: curl --fail --silent --show-error --max-time 20 --retry 3 --retry-delay 20 "$APP_URL/api/ready"

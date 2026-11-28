@@ -7,7 +7,7 @@ from botocore.exceptions import BotoCoreError, ClientError
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel, Field
 
-from vapas.auth.deps import CurrentUser, CurrentUserDep, ServicesDep
+from vapas.auth.deps import CurrentUser, CurrentUserDep, IntakeOpen, ServicesDep
 from vapas.auth.passwords import MAX_PASSWORD_LENGTH
 from vapas.auth.service import CORE_PURPOSE, RateLimitedError
 from vapas.db import repo
@@ -125,7 +125,7 @@ async def _stash_password(services: Services, user: CurrentUser, statement_id: U
     await stash_pdf_password(services.dependencies.redis, cipher, statement_id, password)
 
 
-@router.post("/presign")
+@router.post("/presign", dependencies=[IntakeOpen])
 async def presign(body: PresignIn, user: AllowedUser, services: ServicesDep) -> PresignOut:
     sha = bytes.fromhex(body.sha256)
     content_type = CONTENT_TYPES[body.file_kind]
@@ -156,7 +156,7 @@ async def presign(body: PresignIn, user: AllowedUser, services: ServicesDep) -> 
     )
 
 
-@router.post("/{statement_id}/confirm", status_code=status.HTTP_202_ACCEPTED)
+@router.post("/{statement_id}/confirm", status_code=status.HTTP_202_ACCEPTED, dependencies=[IntakeOpen])
 async def confirm(statement_id: UUID, body: PasswordIn, user: AllowedUser, services: ServicesDep) -> StatementOut:
     row = await _owned(user, statement_id)
     if row.status != store.AWAITING_UPLOAD:
@@ -174,7 +174,7 @@ async def confirm(statement_id: UUID, body: PasswordIn, user: AllowedUser, servi
     return _out(await _owned(user, statement_id))
 
 
-@router.post("/{statement_id}/password", status_code=status.HTTP_202_ACCEPTED)
+@router.post("/{statement_id}/password", status_code=status.HTTP_202_ACCEPTED, dependencies=[IntakeOpen])
 async def provide_password(
     statement_id: UUID, body: PasswordIn, user: AllowedUser, services: ServicesDep
 ) -> StatementOut:

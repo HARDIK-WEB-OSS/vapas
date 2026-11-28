@@ -8,6 +8,7 @@ import httpx
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncConnection
 
+from vapas.config import Settings
 from vapas.db.models import llm_usage
 from vapas.llm_gateway.circuit_breaker import CircuitBreaker
 from vapas.security.redact import find_sensitive, redact
@@ -101,3 +102,8 @@ class LlmGateway:
             raise LlmUnavailableError("model call failed") from error
         self._breaker.record_success()
         return answer
+
+
+def gateway_for(settings: Settings, enabled: bool) -> LlmGateway:
+    provider = OllamaProvider(settings.ollama_url, settings.ollama_model) if enabled and settings.ollama_url else None
+    return LlmGateway(provider, settings.llm_daily_call_budget)

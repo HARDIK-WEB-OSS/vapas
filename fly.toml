@@ -13,7 +13,8 @@ kill_timeout = 30
 [env]
   APP_ENV = "production"
   LOG_LEVEL = "INFO"
-  CLIENT_IP_HEADER = "Fly-Client-IP"
+  CLIENT_IP_HEADER = "X-Vapas-Client-IP"
+  REFRESH_COOKIE_PATH = "/api/auth"
   S3_REGION = "auto"
   S3_BUCKET_RAW = "vapas-raw"
   CLAIM_LOOKBACK_MONTHS = "12"
@@ -24,7 +25,10 @@ kill_timeout = 30
   PRIVATE_FIXTURES_DIR = ""
   MAIL_OUTBOX_DIR = ""
   INVITE_ONLY = "true"
-  MAIL_BACKEND = "resend"
+  LLM_FALLBACK_ENABLED = "false"
+  LETTER_POLISH_ENABLED = "false"
+  OLLAMA_URL = ""
+  MAIL_BACKEND = "smtp"
 
 [processes]
   api = "uvicorn --factory vapas.main:create_app --host 0.0.0.0 --port 8000 --no-server-header --timeout-graceful-shutdown 25"
@@ -56,6 +60,6 @@ kill_timeout = 30
   processes = ["api"]
 
 [[vm]]
-  size = "shared-cpu-2x"
+  size = "shared-cpu-1x"
   memory = "1gb"
   processes = ["worker"]

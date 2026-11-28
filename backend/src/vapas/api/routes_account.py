@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 from vapas.api.export_cases import finding_and_case_data
 from vapas.auth.deps import ClientIpDep, CurrentUser, CurrentUserDep, ServicesDep
 from vapas.auth.passwords import MAX_PASSWORD_LENGTH, verify_password
-from vapas.auth.routes import REFRESH_COOKIE, REFRESH_COOKIE_PATH
+from vapas.auth.routes import clear_refresh_cookie
 from vapas.auth.service import CORE_PURPOSE, ConsentVersionError
 from vapas.db import repo
 from vapas.db import statements as store
@@ -167,4 +167,4 @@ async def delete_account(
     await delete_user_objects(deps.s3, deps.bucket, str(user.user_id))
     await repo.write_audit(user.conn, user.user_id, "account_deleted", services.auth.ip_hash(ip))
     await repo.delete_user(user.conn, user.user_id)
-    response.delete_cookie(REFRESH_COOKIE, path=REFRESH_COOKIE_PATH)
+    clear_refresh_cookie(response, services.settings)
